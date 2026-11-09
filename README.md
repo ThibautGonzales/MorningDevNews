@@ -46,6 +46,9 @@ When the prompt starts with `(.venv)`, the environment is active.
 
 The API answers on http://localhost:8000 (auto-generated docs at http://localhost:8000/docs).
 
+On the first start the backend creates the SQLite database `backend/morningdevnews.db`
+(ignored by Git) and inserts two example topics. Delete the file to start again from scratch.
+
 **Frontend** (from `frontend/`):
 
 ```bash
