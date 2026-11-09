@@ -6,7 +6,7 @@ export interface Health {
   status: string;
 }
 
-/** Point unique d'accès au backend : tous les appels HTTP passeront par ici. */
+/** Single access point to the backend: every HTTP call goes through here. */
 @Injectable({ providedIn: 'root' })
 export class ApiService {
   private readonly http = inject(HttpClient);

@@ -1,6 +1,6 @@
-"""Point d'entrée de l'API MorningDevNews.
+"""Entry point of the MorningDevNews API.
 
-Lancement (depuis le dossier backend/) : uvicorn app.main:app --reload
+Run from the backend/ folder: uvicorn app.main:app --reload
 """
 
 from fastapi import FastAPI
@@ -10,5 +10,5 @@ app = FastAPI(title="MorningDevNews API")
 
 @app.get("/api/health")
 def health() -> dict:
-    """Permet au frontend (et à toi) de vérifier que le backend répond."""
+    """Lets the frontend (and you) check that the backend is up."""
     return {"status": "ok"}

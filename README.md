@@ -1,46 +1,64 @@
 # MorningDevNews
 
-Application locale de veille technologique automatisée. Chaque matin, elle récupère
-les articles publiés depuis la dernière exécution sur les flux RSS que tu as choisis,
-et en fait un résumé avec un LLM.
+Local, automated tech watch app. Every morning it fetches the articles published since
+the last run on the RSS feeds you picked, and summarizes them with an LLM.
 
 ## Structure
 
 ```
-backend/    API Python (FastAPI) : collecte RSS, stockage SQLite, résumés LLM
-frontend/   Interface Angular
+backend/    Python API (FastAPI): RSS collection, SQLite storage, LLM summaries
+frontend/   Angular interface
+start.bat   Starts everything on Windows
 ```
 
-## Prérequis
+## Requirements
 
-- Python 3.11 ou plus
-- Node.js 24.15 ou plus (exigé par Angular 22)
+- Python 3.11 or newer
+- Node.js 24.15 or newer (required by Angular 22)
 
-## Lancer en développement
+## Quick start (Windows)
 
-Deux terminaux, un pour chaque partie.
+Double-click `start.bat` (or run it from a terminal). It:
 
-**Backend** (depuis `backend/`) :
+1. creates the Python virtual environment `backend/.venv` and installs the backend dependencies,
+2. installs the frontend dependencies if `frontend/node_modules` is missing,
+3. opens two windows, one for the backend and one for the frontend, and opens http://localhost:4200.
+
+Close the two windows to stop the app. If you change `frontend/package.json`, run
+`npm install` in `frontend/` (the script only installs when `node_modules` is missing).
+
+## Manual start (any OS)
+
+Two terminals, one per part.
+
+**Backend** (from `backend/`):
 
 ```bash
 python -m venv .venv
-# Windows (PowerShell / cmd) : .venv\Scripts\activate
-# Windows (Git Bash)         : source .venv/Scripts/activate
-# macOS / Linux              : source .venv/bin/activate
+# Windows (PowerShell / cmd): .venv\Scripts\activate
+# Windows (Git Bash)        : source .venv/Scripts/activate
+# macOS / Linux             : source .venv/bin/activate
 pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```
 
-Si le terminal affiche `(.venv)` au début de la ligne, l'environnement est bien activé.
+When the prompt starts with `(.venv)`, the environment is active.
 
-L'API répond sur http://localhost:8000 (documentation auto sur http://localhost:8000/docs).
+The API answers on http://localhost:8000 (auto-generated docs at http://localhost:8000/docs).
 
-**Frontend** (depuis `frontend/`) :
+**Frontend** (from `frontend/`):
 
 ```bash
 npm install
 npm start
 ```
 
-Ouvre http://localhost:4200 : la page doit afficher « Backend : ok ».
-Les appels `/api/...` du frontend sont redirigés vers le backend par `frontend/proxy.conf.json`.
+Open http://localhost:4200: the page should show "Backend: ok".
+`/api/...` calls from the frontend are forwarded to the backend by `frontend/proxy.conf.json`.
+
+## Languages
+
+The project is written in English (code, comments, docs). The interface is in English by
+default and can be switched to French with the selector at the top of the page; the choice
+is remembered by the browser. Texts live in `frontend/src/app/core/i18n/translations.ts`:
+to add a text, add its key to `en` and to `fr` (TypeScript reports a missing translation).

@@ -3,6 +3,6 @@ __pycache__/
 *.pyc
 .venv/
 
-# Secrets et données locales
+# Secrets and local data
 .env
 *.db
