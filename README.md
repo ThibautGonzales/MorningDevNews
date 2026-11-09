@@ -14,7 +14,7 @@ frontend/   Interface Angular
 ## Prérequis
 
 - Python 3.11 ou plus
-- Node.js 20 ou plus
+- Node.js 24.15 ou plus (exigé par Angular 22)
 
 ## Lancer en développement
 
