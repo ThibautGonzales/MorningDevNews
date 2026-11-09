@@ -24,10 +24,14 @@ Deux terminaux, un pour chaque partie.
 
 ```bash
 python -m venv .venv
-# Windows : .venv\Scripts\activate    |    macOS/Linux : source .venv/bin/activate
+# Windows (PowerShell / cmd) : .venv\Scripts\activate
+# Windows (Git Bash)         : source .venv/Scripts/activate
+# macOS / Linux              : source .venv/bin/activate
 pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```
+
+Si le terminal affiche `(.venv)` au début de la ligne, l'environnement est bien activé.
 
 L'API répond sur http://localhost:8000 (documentation auto sur http://localhost:8000/docs).
 
