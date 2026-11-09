@@ -1,12 +1,14 @@
 import { Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { catchError, map, of } from 'rxjs';
+import { CollectButton } from './collect/collect-button';
 import { ApiService } from './core/api.service';
 import { I18nService } from './core/i18n/i18n.service';
 import { Language, TranslationKey } from './core/i18n/translations';
 
 @Component({
   selector: 'app-root',
+  imports: [CollectButton],
   styleUrl: './app.scss',
   templateUrl: './app.html',
 })

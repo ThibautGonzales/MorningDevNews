@@ -1,0 +1,18 @@
+<button type="button" [disabled]="running()" (click)="collect()">
+  {{ running() ? i18n.t('collect.running') : i18n.t('collect.button') }}
+</button>
+
+@if (lastRun(); as run) {
+  @if (run.status === 'failed') {
+    <p class="error">{{ i18n.t('collect.failed') }}</p>
+  } @else {
+    <p class="result">{{ run.articles_fetched }} {{ i18n.t('collect.newArticles') }}</p>
+  }
+  @if (run.error) {
+    <p class="error">{{ i18n.t('collect.sourceErrors') }}</p>
+    <pre>{{ run.error }}</pre>
+  }
+}
+@if (requestFailed()) {
+  <p class="error">{{ i18n.t('collect.failed') }}</p>
+}
