@@ -133,11 +133,17 @@ def judge_articles(model: BaseChatModel, topic: Topic, articles: list[Article]) 
 
 
 if __name__ == "__main__":
+    import sys
+
     from sqlmodel import Session, select
 
     from app.database import engine
     from app.llm import get_chat_model, get_settings
     from app.models import Source
+
+    # The Windows console defaults to cp1252, which cannot print every character an
+    # article title or an LLM reason may contain.
+    sys.stdout.reconfigure(encoding="utf-8")
 
     with Session(engine) as session:
         model = get_chat_model(get_settings(session))
@@ -152,5 +158,5 @@ if __name__ == "__main__":
             print(f"\n=== {topic.name}: {len(articles)} most recent articles ===")
             titles = {a.id: a.title for a in articles}
             for j in judge_articles(model, topic, articles):
-                mark = "✔" if j.is_relevant else "✘"
+                mark = "[YES]" if j.is_relevant else "[NO] "
                 print(f"{mark} {titles[j.article_id]}\n    {j.reason}")
