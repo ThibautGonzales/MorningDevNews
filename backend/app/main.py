@@ -5,7 +5,7 @@ Run from the backend/ folder: uvicorn app.main:app --reload
 
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from datetime import UTC
+from datetime import UTC, date
 
 from fastapi import Depends, FastAPI, HTTPException, Query
 from pydantic import BaseModel
@@ -25,7 +25,7 @@ from app.llm import (
 )
 from app.models import LlmSettings, Run, SummaryPeriod, Topic
 from app.seed import seed_example_topics
-from app.summaries import TopicLatestSummary, latest_summaries
+from app.summaries import PeriodSummaries, summaries_of
 from app.summarizer import LANGUAGES
 
 
@@ -87,13 +87,16 @@ def list_relevant_articles(session: Session = Depends(get_session)) -> list[Topi
     return relevant_articles_by_topic(session)
 
 
-@app.get("/api/summaries/latest")
-def list_latest_summaries(
+@app.get("/api/summaries")
+def list_summaries(
     period: SummaryPeriod = Query(SummaryPeriod.daily, description="daily, weekly or monthly"),
+    date: date | None = Query(
+        None, description="Any day of the period, YYYY-MM-DD. Empty: the latest one with a summary"
+    ),
     session: Session = Depends(get_session),
-) -> list[TopicLatestSummary]:
-    """The latest summary of each topic for the period (summary is null if it never had one)."""
-    return latest_summaries(session, period)
+) -> PeriodSummaries:
+    """The summaries of each topic for the day, week or month holding `date`."""
+    return summaries_of(session, period, date)
 
 
 # ---------- LLM settings ----------

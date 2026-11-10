@@ -1,7 +1,7 @@
 import { DatePipe } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { IsActiveMatchOptions, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { catchError, map, of } from 'rxjs';
 import { CollectButton } from './collect/collect-button';
 import { ApiService } from './core/api.service';
@@ -20,6 +20,14 @@ export class App {
   private readonly api = inject(ApiService);
   protected readonly i18n = inject(I18nService);
   protected readonly collection = inject(CollectionService);
+
+  /** Exact path, but any query: "What is new" stays active on ?period=weekly&date=… */
+  protected readonly activeOptions: IsActiveMatchOptions = {
+    paths: 'exact',
+    queryParams: 'ignored',
+    matrixParams: 'ignored',
+    fragment: 'ignored',
+  };
 
   protected readonly links: { path: string; label: TranslationKey }[] = [
     { path: '/', label: 'nav.summaries' },

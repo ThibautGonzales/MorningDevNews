@@ -1,6 +1,6 @@
 .title-row {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 2rem;
 }
@@ -32,6 +32,108 @@
   }
 }
 
+/* Tabs, then the date shown with its arrows, calendar and way back to the latest. */
+.controls {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.75rem;
+}
+
+.date-nav {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.stepper {
+  display: flex;
+  align-items: stretch;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.step {
+  width: 2.4rem;
+  background: none;
+  border: 0;
+  font-size: 1.25rem;
+  line-height: 1;
+  color: var(--ink);
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: var(--paper-dim);
+  }
+
+  &:disabled {
+    color: var(--line);
+    cursor: default;
+  }
+}
+
+.date-picker {
+  position: relative;
+  border-inline: 1px solid var(--line);
+}
+
+.date-button {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  height: 100%;
+  padding: 0.6rem 1rem;
+  background: none;
+  border: 0;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink);
+  cursor: pointer;
+
+  svg {
+    color: var(--accent);
+  }
+
+  &:hover,
+  &[aria-expanded='true'] {
+    background: var(--paper-dim);
+  }
+}
+
+.calendar-popover {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 50%;
+  transform: translateX(50%);
+  z-index: 10;
+}
+
+.latest {
+  padding: 0;
+  background: none;
+  border: 0;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent);
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    color: var(--accent-hover);
+    text-decoration: underline;
+  }
+
+  &:disabled {
+    color: var(--muted);
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
 .stats {
   display: flex;
   gap: 1.5rem;
@@ -55,6 +157,13 @@
   h2 {
     font-size: 1.85rem;
   }
+}
+
+/* A second collection the same day: its summary follows the first one, under a thin line. */
+.next-summary {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--line);
 }
 
 .headline {

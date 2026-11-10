@@ -1,0 +1,139 @@
+/* Same vocabulary as the rest of the page: ink for the choice, paper-dim on hover, mono labels. */
+
+.calendar {
+  width: 19rem;
+  padding: 1rem 1rem 1.1rem;
+  box-shadow: 0 12px 32px rgba(27, 27, 48, 0.12);
+}
+
+.calendar-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.calendar-title {
+  font-family: var(--font-title);
+  font-weight: 600;
+  color: var(--ink);
+  text-transform: capitalize;
+}
+
+.arrow {
+  width: 2rem;
+  height: 2rem;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  font-size: 1.2rem;
+  line-height: 1;
+  color: var(--ink);
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    border-color: var(--line);
+    background: var(--paper);
+  }
+
+  &:disabled {
+    color: var(--line);
+    cursor: default;
+  }
+}
+
+.days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.weekday {
+  padding: 0.3rem 0;
+  text-align: center;
+}
+
+.week {
+  border-radius: 3px;
+}
+
+.months {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.35rem;
+
+  .cell {
+    padding: 0.7rem 0;
+    text-transform: capitalize;
+  }
+}
+
+.cell {
+  position: relative;
+  padding: 0.45rem 0;
+  background: none;
+  border: 0;
+  border-radius: 3px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--ink);
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: var(--paper-dim);
+  }
+
+  /* No summary that day: shown but not clickable. */
+  &:disabled {
+    font-weight: 400;
+    color: var(--muted);
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  &.outside:not(:disabled) {
+    color: var(--muted);
+  }
+
+  /* Today: a small magenta mark under the number. */
+  &.today::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: 0.2rem;
+    width: 4px;
+    height: 4px;
+    margin-left: -2px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+
+  &.selected {
+    background: var(--ink);
+    color: #fff;
+    font-weight: 600;
+  }
+}
+
+/* Week tab: hovering any day lights up its whole row, the chosen week is in ink. */
+.weekly {
+  .week:not(.selected):has(.cell:not(:disabled):hover) {
+    background: var(--paper-dim);
+
+    .cell:hover {
+      background: none;
+    }
+  }
+
+  .week.selected {
+    background: var(--ink);
+
+    .cell {
+      color: #fff;
+      font-weight: 600;
+
+      &:hover {
+        background: none;
+      }
+    }
+  }
+}
