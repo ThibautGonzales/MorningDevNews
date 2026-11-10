@@ -19,7 +19,7 @@
   </p>
   <!-- After a collection, the summaries and the list reload to show what it brought. -->
   <app-collect-button (collected)="summaries.reload(); articles.reload()" />
-  <app-daily-summaries #summaries />
+  <app-summaries #summaries />
   <app-relevant-articles #articles />
   <app-llm-settings />
 </main>
