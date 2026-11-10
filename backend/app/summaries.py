@@ -1,6 +1,7 @@
-"""Reading side of the daily summaries: what the frontend shows.
+"""Reading side of the summaries: what the frontend shows.
 
-summarizer.py writes them; this module reads the latest one of each topic back and
+summarizer.py writes the daily ones and period_summarizer.py the weekly and monthly
+ones; this module reads the latest one of each topic back, for the period asked, and
 turns the article numbers chosen by the LLM into real titles and links.
 """
 
@@ -26,36 +27,38 @@ class SummaryPointOut(BaseModel):
     articles: list[SummaryArticle]
 
 
-class DailySummaryOut(BaseModel):
+class SummaryOut(BaseModel):
     period_start: datetime
     period_end: datetime
     headline: str
     points: list[SummaryPointOut]
 
 
-class TopicDailySummary(BaseModel):
-    """One topic with its latest daily summary, or None if it never had one."""
+class TopicLatestSummary(BaseModel):
+    """One topic with its latest summary of a period, or None if it never had one."""
 
     topic_id: int
     topic_name: str
-    summary: DailySummaryOut | None
+    summary: SummaryOut | None
 
 
-def latest_daily_summaries(session: Session) -> list[TopicDailySummary]:
-    """The latest daily summary of every enabled topic, in topic order."""
+def latest_summaries(session: Session, period: SummaryPeriod) -> list[TopicLatestSummary]:
+    """The latest summary of the period for every enabled topic, in topic order."""
     topics = session.exec(select(Topic).where(Topic.enabled).order_by(Topic.id)).all()
     return [
-        TopicDailySummary(
-            topic_id=topic.id, topic_name=topic.name, summary=latest_summary(session, topic)
+        TopicLatestSummary(
+            topic_id=topic.id,
+            topic_name=topic.name,
+            summary=latest_summary(session, topic, period),
         )
         for topic in topics
     ]
 
 
-def latest_summary(session: Session, topic: Topic) -> DailySummaryOut | None:
+def latest_summary(session: Session, topic: Topic, period: SummaryPeriod) -> SummaryOut | None:
     row = session.exec(
         select(Summary)
-        .where(Summary.topic_id == topic.id, Summary.period == SummaryPeriod.daily)
+        .where(Summary.topic_id == topic.id, Summary.period == period)
         .order_by(Summary.period_end.desc())
     ).first()
     if row is None:
@@ -65,7 +68,7 @@ def latest_summary(session: Session, topic: Topic) -> DailySummaryOut | None:
     ids = {i for point in content.points for i in point.article_ids}
     # One query for all the articles the summary cites.
     articles = {a.id: a for a in session.exec(select(Article).where(Article.id.in_(ids)))}
-    return DailySummaryOut(
+    return SummaryOut(
         period_start=row.period_start,
         period_end=row.period_end,
         headline=content.headline,

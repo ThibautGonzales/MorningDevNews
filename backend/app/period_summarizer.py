@@ -14,6 +14,8 @@ finished period is summarized.
 Try it on its own (reads the database, writes nothing):
     python -m app.period_summarizer week          # last finished week, in English
     python -m app.period_summarizer month fr      # last finished month, in French
+After each collection, summarize_finished_periods() writes the summary of the last
+finished week and month of every topic, once.
 """
 
 from datetime import datetime, timedelta
@@ -21,7 +23,8 @@ from datetime import datetime, timedelta
 from langchain_core.language_models import BaseChatModel
 from sqlmodel import Session, select
 
-from app.models import Summary, SummaryPeriod, Topic
+from app.llm import LlmNotConfiguredError, get_chat_model, get_settings
+from app.models import Run, Summary, SummaryPeriod, Topic
 from app.summarizer import LANGUAGES, MAX_POINTS, TopicSummary
 
 # The words used on the command line, and how the prompt names each period.
@@ -132,11 +135,72 @@ def summarize_period(
     return summary
 
 
+# ---------- After a collection: summarize the last finished week and month, once ----------
+
+
+def summarize_finished_periods(session: Session, run: Run, language: str = "en") -> None:
+    """Writes the weekly and monthly Summary of every enabled topic that does not have one.
+
+    Only the last finished week and month are looked at: a missed older period is not
+    caught up, to keep the cost of a collection small. A topic with no daily summary in
+    the period gets no LLM call and no Summary. Never raises, like summarize_new_articles():
+    errors go to run.error, and a failed topic is simply tried again on the next run.
+    Must run after the daily summaries, which it reads.
+    """
+    try:
+        model = get_chat_model(get_settings(session))
+    except LlmNotConfiguredError:
+        return  # summarize_new_articles() already reported it in run.error
+
+    now = datetime.now().astimezone()
+    created = 0
+    errors = []
+    for period in PERIODS.values():
+        start, end = last_finished_period(period, now)
+        for topic in session.exec(select(Topic).where(Topic.enabled)).all():
+            if has_summary(session, topic, period, start):
+                continue
+            dailies = daily_summaries_in(session, topic, start, end)
+            if not dailies:
+                continue
+            try:
+                summary = summarize_period(model, topic, period, dailies, language)
+            except Exception as exc:  # one failing topic (quota, timeout) must not stop the others
+                errors.append(f"{period.value.capitalize()} summary ({topic.name}): {exc}")
+                continue
+            session.add(
+                Summary(
+                    topic_id=topic.id,
+                    period=period,
+                    period_start=start,
+                    period_end=end,
+                    content=summary.model_dump_json(),
+                )
+            )
+            session.commit()
+            created += 1
+
+    run.summaries_created += created
+    run.error = "\n".join(filter(None, [run.error, *errors])) or None
+
+
+def has_summary(session: Session, topic: Topic, period: SummaryPeriod, start: datetime) -> bool:
+    return (
+        session.exec(
+            select(Summary.id).where(
+                Summary.topic_id == topic.id,
+                Summary.period == period,
+                Summary.period_start == start,
+            )
+        ).first()
+        is not None
+    )
+
+
 if __name__ == "__main__":
     import sys
 
     from app.database import engine
-    from app.llm import get_chat_model, get_settings
     from app.models import Article
 
     # The Windows console defaults to cp1252, which cannot print every character.

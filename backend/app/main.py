@@ -22,9 +22,9 @@ from app.llm import (
     read_api_key,
     save_api_key,
 )
-from app.models import LlmSettings, Run, Topic
+from app.models import LlmSettings, Run, SummaryPeriod, Topic
 from app.seed import seed_example_topics
-from app.summaries import TopicDailySummary, latest_daily_summaries
+from app.summaries import TopicLatestSummary, latest_summaries
 from app.summarizer import LANGUAGES
 
 
@@ -53,7 +53,7 @@ def list_topics(session: Session = Depends(get_session)) -> list[Topic]:
 
 @app.post("/api/runs")
 def start_run(
-    language: str = Query("en", description="Language of the daily summaries: en or fr"),
+    language: str = Query("en", description="Language of the summaries: en or fr"),
     session: Session = Depends(get_session),
 ) -> Run:
     """Collects all enabled sources now, judges and summarizes, and returns the finished run.
@@ -73,9 +73,12 @@ def list_relevant_articles(session: Session = Depends(get_session)) -> list[Topi
 
 
 @app.get("/api/summaries/latest")
-def list_latest_summaries(session: Session = Depends(get_session)) -> list[TopicDailySummary]:
-    """The latest daily summary of each topic (summary is null if it never had one)."""
-    return latest_daily_summaries(session)
+def list_latest_summaries(
+    period: SummaryPeriod = Query(SummaryPeriod.daily, description="daily, weekly or monthly"),
+    session: Session = Depends(get_session),
+) -> list[TopicLatestSummary]:
+    """The latest summary of each topic for the period (summary is null if it never had one)."""
+    return latest_summaries(session, period)
 
 
 # ---------- LLM settings ----------

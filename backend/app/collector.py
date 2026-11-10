@@ -8,6 +8,7 @@ from sqlmodel import Session, select
 
 from app.feeds import FeedEntry, discover_feed_url, fetch_feed
 from app.models import Article, Run, RunStatus, Source, utc_now
+from app.period_summarizer import summarize_finished_periods
 from app.relevance import judge_new_articles
 from app.summarizer import summarize_new_articles
 
@@ -18,7 +19,8 @@ class FeedNotFoundError(Exception):
 
 def run_collection(session: Session, language: str = "en") -> Run:
     """Collects every enabled source, judges the new articles, summarizes them per topic
-    (in `language`), and records it all as a Run.
+    (in `language`), summarizes the last finished week and month if not done yet, and
+    records it all as a Run.
 
     A failing source is logged in run.error and skipped: the other sources still run.
     """
@@ -48,6 +50,7 @@ def run_collection(session: Session, language: str = "en") -> Run:
 
     judge_new_articles(session, run)
     summarize_new_articles(session, run, language)
+    summarize_finished_periods(session, run, language)  # reads the daily summaries above
     run.finished_at = utc_now()
     session.add(run)
     session.commit()
