@@ -35,4 +35,12 @@ describe('App', () => {
     expect(compiled.querySelector('strong')?.textContent).toBe('injoignable');
     expect(document.documentElement.lang).toBe('fr');
   });
+
+  it('selects the language saved in the browser on start', async () => {
+    localStorage.setItem('language', 'fr');
+    const fixture = TestBed.createComponent(App);
+    await fixture.whenStable();
+    const select = (fixture.nativeElement as HTMLElement).querySelector('select')!;
+    expect(select.value).toBe('fr');
+  });
 });
