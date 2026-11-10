@@ -31,7 +31,7 @@ export class App {
 
   protected readonly links: { path: string; label: TranslationKey }[] = [
     { path: '/', label: 'nav.summaries' },
-    { path: '/articles', label: 'nav.articles' },
+    { path: '/topics', label: 'nav.topics' },
     { path: '/settings', label: 'nav.settings' },
   ];
 

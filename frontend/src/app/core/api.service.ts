@@ -42,21 +42,40 @@ export interface LlmSettingsUpdate {
   api_key?: string;
 }
 
-/** An article the LLM judged relevant for its topic. */
-export interface RelevantArticle {
+/** A site followed for a topic, read through its RSS/Atom feed. */
+export interface TopicSource {
   id: number;
-  title: string;
-  url: string;
-  published_at: string | null;
-  source_name: string;
-  relevance_reason: string | null;
+  name: string;
+  site_url: string;
+  feed_url: string | null;
+  enabled: boolean;
+  last_fetched_at: string | null;
+  /** Articles stored from this source. Only a source without articles can be deleted. */
+  article_count: number;
 }
 
-/** One topic with its relevant articles of the last 7 days, most recent first. */
-export interface TopicArticles {
-  topic_id: number;
-  topic_name: string;
-  articles: RelevantArticle[];
+/** A watch subject. The description holds the filtering instructions read by the LLM. */
+export interface Topic {
+  id: number;
+  name: string;
+  description: string;
+  enabled: boolean;
+  sources: TopicSource[];
+}
+
+/** What the forms send. A missing field is left unchanged by the backend. */
+export interface TopicUpdate {
+  name?: string;
+  description?: string;
+  enabled?: boolean;
+}
+
+export interface SourceUpdate {
+  name?: string;
+  site_url?: string;
+  /** Empty or missing when adding: the backend looks for the feed on the site. */
+  feed_url?: string;
+  enabled?: boolean;
 }
 
 /** An article a summary point comes from. */
@@ -135,8 +154,31 @@ export class ApiService {
     return this.http.get<PeriodSummaries>('/api/summaries', { params });
   }
 
-  getRelevantArticles(): Observable<TopicArticles[]> {
-    return this.http.get<TopicArticles[]>('/api/articles/relevant');
+  /** Every topic, disabled ones included, with its sources. */
+  getTopics(): Observable<Topic[]> {
+    return this.http.get<Topic[]>('/api/topics');
+  }
+
+  createTopic(topic: { name: string; description: string }): Observable<Topic> {
+    return this.http.post<Topic>('/api/topics', topic);
+  }
+
+  updateTopic(id: number, update: TopicUpdate): Observable<Topic> {
+    return this.http.put<Topic>(`/api/topics/${id}`, update);
+  }
+
+  /** Adds a site to a topic. Fails (HTTP 400) when its feed cannot be found or read. */
+  addSource(topicId: number, source: SourceUpdate): Observable<TopicSource> {
+    return this.http.post<TopicSource>(`/api/topics/${topicId}/sources`, source);
+  }
+
+  updateSource(id: number, update: SourceUpdate): Observable<TopicSource> {
+    return this.http.put<TopicSource>(`/api/sources/${id}`, update);
+  }
+
+  /** Only for a source without articles (HTTP 409 otherwise). */
+  deleteSource(id: number): Observable<void> {
+    return this.http.delete<void>(`/api/sources/${id}`);
   }
 
   getSettings(): Observable<LlmSettings> {

@@ -8,7 +8,7 @@ Nothing is deleted except a source that never brought an article: a topic or a s
 no longer want is disabled, so the articles and summaries it produced stay in the history.
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 
 import httpx
 from fastapi import APIRouter, Depends, HTTPException
@@ -127,7 +127,11 @@ def article_counts(session: Session) -> dict[int, int]:
 
 
 def source_out(source: Source, counts: dict[int, int]) -> SourceOut:
-    return SourceOut(**source.model_dump(exclude={"topic_id"}), article_count=counts.get(source.id, 0))
+    out = SourceOut(**source.model_dump(exclude={"topic_id"}), article_count=counts.get(source.id, 0))
+    if out.last_fetched_at is not None:
+        # SQLite gives back naive datetimes: they were stored in UTC (see main.latest_run).
+        out.last_fetched_at = out.last_fetched_at.replace(tzinfo=UTC)
+    return out
 
 
 def topic_out(session: Session, topic: Topic, counts: dict[int, int] | None = None) -> TopicOut:
