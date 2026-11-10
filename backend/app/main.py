@@ -10,6 +10,7 @@ from fastapi import Depends, FastAPI, HTTPException
 from pydantic import BaseModel
 from sqlmodel import Session, select
 
+from app.articles import TopicArticles, relevant_articles_by_topic
 from app.collector import run_collection
 from app.database import create_db_and_tables, get_session
 from app.llm import (
@@ -56,6 +57,12 @@ def start_run(session: Session = Depends(get_session)) -> Run:
     runs in a worker thread, so the server keeps answering other requests meanwhile.
     """
     return run_collection(session)
+
+
+@app.get("/api/articles/relevant")
+def list_relevant_articles(session: Session = Depends(get_session)) -> list[TopicArticles]:
+    """The relevant articles of the last 7 days, grouped by topic."""
+    return relevant_articles_by_topic(session)
 
 
 # ---------- LLM settings ----------

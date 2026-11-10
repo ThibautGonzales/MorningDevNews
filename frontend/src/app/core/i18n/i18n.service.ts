@@ -1,7 +1,12 @@
+import { registerLocaleData } from '@angular/common';
+import localeFr from '@angular/common/locales/fr';
 import { Injectable, effect, signal } from '@angular/core';
 import { DEFAULT_LANGUAGE, Language, TranslationKey, translations } from './translations';
 
 const STORAGE_KEY = 'language';
+
+// English date formats ship with Angular; French ones must be registered for the date pipe.
+registerLocaleData(localeFr);
 
 /** Holds the current language and translates texts. The choice is remembered in the browser. */
 @Injectable({ providedIn: 'root' })

@@ -40,6 +40,23 @@ export interface LlmSettingsUpdate {
   api_key?: string;
 }
 
+/** An article the LLM judged relevant for its topic. */
+export interface RelevantArticle {
+  id: number;
+  title: string;
+  url: string;
+  published_at: string | null;
+  source_name: string;
+  relevance_reason: string | null;
+}
+
+/** One topic with its relevant articles of the last 7 days, most recent first. */
+export interface TopicArticles {
+  topic_id: number;
+  topic_name: string;
+  articles: RelevantArticle[];
+}
+
 /** Single access point to the backend: every HTTP call goes through here. */
 @Injectable({ providedIn: 'root' })
 export class ApiService {
@@ -52,6 +69,10 @@ export class ApiService {
   /** Collects every enabled source now. The response arrives once the collection is finished. */
   startRun(): Observable<Run> {
     return this.http.post<Run>('/api/runs', null);
+  }
+
+  getRelevantArticles(): Observable<TopicArticles[]> {
+    return this.http.get<TopicArticles[]>('/api/articles/relevant');
   }
 
   getSettings(): Observable<LlmSettings> {
