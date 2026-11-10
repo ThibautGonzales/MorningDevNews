@@ -5,10 +5,11 @@ import { CollectButton } from './collect/collect-button';
 import { ApiService } from './core/api.service';
 import { I18nService } from './core/i18n/i18n.service';
 import { Language, TranslationKey } from './core/i18n/translations';
+import { LlmSettingsForm } from './settings/llm-settings';
 
 @Component({
   selector: 'app-root',
-  imports: [CollectButton],
+  imports: [CollectButton, LlmSettingsForm],
   styleUrl: './app.scss',
   templateUrl: './app.html',
 })
@@ -19,7 +20,9 @@ export class App {
   /** Translation key of the backend state: ok if it answers, unreachable otherwise. */
   protected readonly backendStatus = toSignal(
     this.api.getHealth().pipe(
-      map((health): TranslationKey => (health.status === 'ok' ? 'backend.ok' : 'backend.unreachable')),
+      map((health): TranslationKey =>
+        health.status === 'ok' ? 'backend.ok' : 'backend.unreachable',
+      ),
       catchError(() => of<TranslationKey>('backend.unreachable')),
     ),
     { initialValue: 'backend.checking' as TranslationKey },
