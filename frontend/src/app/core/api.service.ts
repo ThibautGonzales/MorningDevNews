@@ -89,11 +89,21 @@ export interface Summary {
   points: SummaryPoint[];
 }
 
-/** One topic with its latest summary of a period, or null if it never had one. */
-export interface TopicSummary {
+/** One topic with its summaries of the date: usually one, several if more collections ran that day. */
+export interface TopicSummaries {
   topic_id: number;
   topic_name: string;
-  summary: Summary | null;
+  summaries: Summary[];
+}
+
+/** The summaries of one day, week or month, and the dates the page can move to. */
+export interface PeriodSummaries {
+  period: SummaryPeriod;
+  /** 'YYYY-MM-DD' on the local calendar: the day, the Monday of the week or the 1st of the month. */
+  date: string;
+  /** Every date of this period that has a summary, oldest first. */
+  available_dates: string[];
+  topics: TopicSummaries[];
 }
 
 /** Single access point to the backend: every HTTP call goes through here. */
@@ -118,8 +128,11 @@ export class ApiService {
     return this.http.get<Run | null>('/api/runs/latest');
   }
 
-  getLatestSummaries(period: SummaryPeriod): Observable<TopicSummary[]> {
-    return this.http.get<TopicSummary[]>('/api/summaries/latest', { params: { period } });
+  /** The summaries of the period holding `date` ('YYYY-MM-DD'); without a date, the latest ones. */
+  getSummaries(period: SummaryPeriod, date: string | null): Observable<PeriodSummaries> {
+    const params: Record<string, string> = { period };
+    if (date) params['date'] = date;
+    return this.http.get<PeriodSummaries>('/api/summaries', { params });
   }
 
   getRelevantArticles(): Observable<TopicArticles[]> {

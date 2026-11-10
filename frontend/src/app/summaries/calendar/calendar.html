@@ -1,0 +1,70 @@
+<div class="calendar card" [class.weekly]="period() === 'weekly'">
+  <div class="calendar-head">
+    <button
+      type="button"
+      class="arrow"
+      [disabled]="!canGoBack()"
+      [attr.aria-label]="
+        i18n.t(period() === 'monthly' ? 'calendar.previousYear' : 'calendar.previousMonth')
+      "
+      (click)="move(-1)"
+    >
+      ‹
+    </button>
+    <span class="calendar-title">{{ title() }}</span>
+    <button
+      type="button"
+      class="arrow"
+      [disabled]="!canGoForward()"
+      [attr.aria-label]="
+        i18n.t(period() === 'monthly' ? 'calendar.nextYear' : 'calendar.nextMonth')
+      "
+      (click)="move(1)"
+    >
+      ›
+    </button>
+  </div>
+
+  @if (period() === 'monthly') {
+    <div class="months">
+      @for (cell of months(); track cell.value) {
+        <button
+          type="button"
+          class="cell"
+          [class.selected]="cell.selected"
+          [class.today]="cell.today"
+          [disabled]="!cell.enabled"
+          [attr.aria-pressed]="cell.selected"
+          (click)="picked.emit(cell.value)"
+        >
+          {{ cell.label }}
+        </button>
+      }
+    </div>
+  } @else {
+    <div class="days">
+      @for (weekday of weekdays(); track $index) {
+        <span class="weekday label" aria-hidden="true">{{ weekday }}</span>
+      }
+    </div>
+    @for (week of weeks(); track week[0].value + $index) {
+      <!-- On the Week tab, the cells of a row share one value: the whole row lights up. -->
+      <div class="days week" [class.selected]="period() === 'weekly' && week[0].selected">
+        @for (cell of week; track $index) {
+          <button
+            type="button"
+            class="cell"
+            [class.outside]="cell.outside"
+            [class.selected]="period() === 'daily' && cell.selected"
+            [class.today]="cell.today"
+            [disabled]="!cell.enabled"
+            [attr.aria-pressed]="cell.selected"
+            (click)="picked.emit(cell.value)"
+          >
+            {{ cell.label }}
+          </button>
+        }
+      </div>
+    }
+  }
+</div>

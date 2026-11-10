@@ -7,16 +7,95 @@
     </p>
     <div class="title-row">
       <h1 class="page-title">{{ i18n.t('summaries.title') }}</h1>
-      <div class="tabs" role="group" [attr.aria-label]="i18n.t('summaries.periods')">
-        @for (tab of tabs; track tab.period) {
-          <button
-            type="button"
-            [class.active]="tab.period === period()"
-            [attr.aria-pressed]="tab.period === period()"
-            (click)="select(tab.period)"
-          >
-            {{ i18n.t(tab.label) }}
-          </button>
+      <div class="controls">
+        <div class="tabs" role="group" [attr.aria-label]="i18n.t('summaries.periods')">
+          @for (tab of tabs; track tab.period) {
+            <button
+              type="button"
+              [class.active]="tab.period === period()"
+              [attr.aria-pressed]="tab.period === period()"
+              (click)="select(tab.period)"
+            >
+              {{ i18n.t(tab.label) }}
+            </button>
+          }
+        </div>
+        @if (data()?.available_dates?.length && data(); as data) {
+          <div class="date-nav">
+            <div class="stepper">
+              <button
+                type="button"
+                class="step"
+                [disabled]="!previousDate()"
+                [attr.aria-label]="i18n.t('summaries.previous')"
+                [title]="i18n.t('summaries.previous')"
+                (click)="goTo(previousDate())"
+              >
+                ‹
+              </button>
+              <div class="date-picker">
+                <button
+                  type="button"
+                  class="date-button"
+                  [attr.aria-expanded]="calendarOpen()"
+                  [title]="i18n.t('summaries.pickDate')"
+                  (click)="toggleCalendar()"
+                >
+                  <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+                    <rect
+                      x="1.5"
+                      y="2.5"
+                      width="13"
+                      height="12"
+                      rx="1.5"
+                      fill="none"
+                      stroke="currentColor"
+                    />
+                    <path d="M1.5 6.5h13M5 1v3M11 1v3" stroke="currentColor" />
+                  </svg>
+                  <span>
+                    @switch (period()) {
+                      @case ('daily') {
+                        {{
+                          asDate(data.date) | date: 'EEEE d MMMM y' : undefined : i18n.language()
+                        }}
+                      }
+                      @case ('weekly') {
+                        {{ i18n.t('summaries.weekNumber') }} {{ weekNumberOf(data.date) }} ·
+                        {{ asDate(data.date) | date: 'd MMM' : undefined : i18n.language() }} –
+                        {{ weekEnd(data.date) | date: 'd MMM y' : undefined : i18n.language() }}
+                      }
+                      @case ('monthly') {
+                        {{ asDate(data.date) | date: 'MMMM y' : undefined : i18n.language() }}
+                      }
+                    }
+                  </span>
+                </button>
+                @if (calendarOpen()) {
+                  <app-calendar
+                    class="calendar-popover"
+                    [period]="period()"
+                    [available]="data.available_dates"
+                    [selected]="data.date"
+                    (picked)="goTo($event)"
+                  />
+                }
+              </div>
+              <button
+                type="button"
+                class="step"
+                [disabled]="!nextDate()"
+                [attr.aria-label]="i18n.t('summaries.next')"
+                [title]="i18n.t('summaries.next')"
+                (click)="goTo(nextDate())"
+              >
+                ›
+              </button>
+            </div>
+            <button type="button" class="latest" [disabled]="isLatest()" (click)="goTo(null)">
+              {{ i18n.t('summaries.latest') }} »
+            </button>
+          </div>
         }
       </div>
     </div>
@@ -36,16 +115,16 @@
 
   @for (topic of topics(); track topic.topic_id; let i = $index) {
     <section class="topic">
-      <div class="topic-head">
-        <div>
-          <h2>
-            {{ pad(i + 1) }}<span class="sep" aria-hidden="true">/</span>{{ topic.topic_name }}
-          </h2>
-          @if (topic.summary; as summary) {
+      @for (summary of topic.summaries; track summary.period_end; let first = $first) {
+        <div class="topic-head" [class.next-summary]="!first">
+          <div>
+            @if (first) {
+              <h2>
+                {{ pad(i + 1) }}<span class="sep" aria-hidden="true">/</span>{{ topic.topic_name }}
+              </h2>
+            }
             <p class="headline">{{ summary.headline }}</p>
-          }
-        </div>
-        @if (topic.summary; as summary) {
+          </div>
           <div class="period">
             <span class="label label-accent">
               @switch (period()) {
@@ -53,7 +132,7 @@
                   {{ i18n.t('summaries.daily') }}
                 }
                 @case ('weekly') {
-                  {{ i18n.t('summaries.weekNumber') }} {{ weekNumber(summary) }}
+                  {{ i18n.t('summaries.weekNumber') }} {{ summaryWeekNumber(summary) }}
                 }
                 @case ('monthly') {
                   {{ i18n.t('summaries.monthly') }}
@@ -79,10 +158,8 @@
               }
             </span>
           </div>
-        }
-      </div>
+        </div>
 
-      @if (topic.summary; as summary) {
         <ul class="points">
           @for (point of summary.points; track $index) {
             <li class="card point">
@@ -115,8 +192,13 @@
             </li>
           }
         </ul>
-      } @else {
-        <p class="empty">{{ i18n.t(neverKey()) }}</p>
+      } @empty {
+        <div class="topic-head">
+          <h2>
+            {{ pad(i + 1) }}<span class="sep" aria-hidden="true">/</span>{{ topic.topic_name }}
+          </h2>
+        </div>
+        <p class="empty">{{ i18n.t(emptyKey()) }}</p>
       }
     </section>
   }

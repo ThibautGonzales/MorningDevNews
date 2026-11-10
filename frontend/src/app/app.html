@@ -14,7 +14,7 @@
           [routerLink]="link.path"
           routerLinkActive="active"
           ariaCurrentWhenActive="page"
-          [routerLinkActiveOptions]="{ exact: true }"
+          [routerLinkActiveOptions]="activeOptions"
         >
           {{ i18n.t(link.label) }}
         </a>
