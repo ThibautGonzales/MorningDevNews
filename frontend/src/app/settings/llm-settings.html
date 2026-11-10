@@ -1,57 +1,107 @@
-<section>
-  <h2>{{ i18n.t('settings.title') }}</h2>
-
-  @if (saved(); as settings) {
-    <label>
-      {{ i18n.t('settings.provider') }}
-      <!-- [selected] on the options, not [value] on the select: see the language select in app.html. -->
-      <select (change)="onProviderChange($event)">
-        <option value="" [selected]="!provider()">{{ i18n.t('settings.providerGuessed') }}</option>
-        @for (p of settings.providers; track p.id) {
-          <option [value]="p.id" [selected]="p.id === provider()">{{ p.label }}</option>
-        }
-      </select>
-    </label>
-
-    <label>
-      {{ i18n.t('settings.apiKey') }}
-      <input
-        type="password"
-        autocomplete="off"
-        [value]="apiKey()"
-        [placeholder]="
-          settings.api_key_hint ? i18n.t('settings.apiKeySaved') + ' ' + settings.api_key_hint : ''
-        "
-        (input)="onApiKeyInput($event)"
-      />
-    </label>
-
-    <label>
-      {{ i18n.t('settings.model') }}
-      <input
-        type="text"
-        [value]="model()"
-        [placeholder]="defaultModel()"
-        (input)="onModelInput($event)"
-      />
-    </label>
-
-    <div class="actions">
-      <button type="button" [disabled]="busy()" (click)="save()">
-        {{ i18n.t('settings.save') }}
-      </button>
-      <button type="button" [disabled]="busy() || !settings.api_key_hint" (click)="test()">
-        {{ i18n.t('settings.test') }}
-      </button>
-    </div>
-  }
-
-  @if (feedback(); as f) {
-    <p [class]="f.error ? 'error' : 'success'">
-      {{ i18n.t(f.key) }}
-      @if (f.detail) {
-        <br /><small>{{ f.detail }}</small>
-      }
+<div class="page">
+  <div class="page-head">
+    <p class="eyebrow">
+      <span>{{ i18n.t('settings.eyebrow') }}</span
+      ><span aria-hidden="true">/</span>
+      <span>{{ i18n.t('settings.eyebrowSub') }}</span>
     </p>
-  }
-</section>
+    <h1 class="page-title">{{ i18n.t('settings.title') }}</h1>
+    <p class="lead">{{ i18n.t('settings.lead') }}</p>
+  </div>
+
+  <div class="layout">
+    <aside>
+      <h2 class="intro-title">
+        {{ i18n.t('settings.introTitle') }}<br />{{ i18n.t('settings.introTitle2') }}
+      </h2>
+      <p class="intro-text">{{ i18n.t('settings.introText') }}</p>
+
+      <div class="circuit">
+        <p class="label">{{ i18n.t('settings.circuitTitle') }}</p>
+        <ol>
+          <li><span>01</span>{{ i18n.t('settings.step1') }}</li>
+          <li><span>02</span>{{ i18n.t('settings.step2') }}</li>
+          <li><span>03</span>{{ i18n.t('settings.step3') }}</li>
+        </ol>
+      </div>
+
+      <div class="key-note">
+        <p class="label">{{ i18n.t('settings.keyTitle') }}</p>
+        <p>{{ i18n.t('settings.keyText') }}</p>
+      </div>
+    </aside>
+
+    <section class="card form">
+      <h2>{{ i18n.t('settings.formTitle') }}</h2>
+      <p class="form-lead">{{ i18n.t('settings.formLead') }}</p>
+
+      @if (saved(); as settings) {
+        <label>
+          <span class="field-label">{{ i18n.t('settings.provider') }}</span>
+          <!-- [selected] on the options, not [value] on the select: the select's value is set
+               before @for creates the options, so the browser would fall back to the first one. -->
+          <select (change)="onProviderChange($event)">
+            <option value="" [selected]="!provider()">
+              {{ i18n.t('settings.providerGuessed') }}
+            </option>
+            @for (p of settings.providers; track p.id) {
+              <option [value]="p.id" [selected]="p.id === provider()">{{ p.label }}</option>
+            }
+          </select>
+          <small>{{ i18n.t('settings.providers') }} {{ providerNames() }}.</small>
+        </label>
+
+        <label>
+          <span class="field-label">{{ i18n.t('settings.apiKey') }}</span>
+          <input
+            type="password"
+            autocomplete="off"
+            [value]="apiKey()"
+            [placeholder]="settings.api_key_hint ? '••••••••••••••••••••' : ''"
+            (input)="onApiKeyInput($event)"
+          />
+          @if (settings.api_key_hint) {
+            <small class="key-hint"
+              >{{ i18n.t('settings.apiKeySaved') }} {{ settings.api_key_hint }}</small
+            >
+          }
+        </label>
+
+        <label>
+          <span class="field-label">{{ i18n.t('settings.model') }}</span>
+          <input
+            type="text"
+            class="mono"
+            [value]="model()"
+            [placeholder]="defaultModel()"
+            (input)="onModelInput($event)"
+          />
+          <small>{{ i18n.t('settings.modelHelp') }}</small>
+        </label>
+
+        <div class="actions">
+          <button type="button" class="btn btn-primary" [disabled]="busy()" (click)="save()">
+            {{ i18n.t('settings.save') }}
+          </button>
+          <button
+            type="button"
+            class="btn btn-secondary"
+            [disabled]="busy() || !settings.api_key_hint"
+            (click)="test()"
+          >
+            {{ i18n.t('settings.test') }}
+          </button>
+        </div>
+      }
+
+      @if (feedback(); as f) {
+        <p class="feedback" [class]="f.error ? 'error' : 'success'" role="status">
+          {{ i18n.t(f.key) }}
+          @if (f.detail) {
+            <br /><small>{{ f.detail }}</small>
+          }
+        </p>
+      }
+    </section>
+  </div>
+</div>

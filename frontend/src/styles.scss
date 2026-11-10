@@ -1,1 +1,188 @@
-/* You can add global styles to this file, and also import other style files */
+/*
+ * Global styles: the design tokens (colors, fonts) and the pieces every page shares
+ * (page title block, cards, buttons, small mono labels). Each component keeps only its own layout.
+ */
+
+@use '@fontsource-variable/inter';
+@use '@fontsource-variable/space-grotesk';
+@use '@fontsource-variable/jetbrains-mono';
+
+:root {
+  --ink: #1b1b30; // header, titles, dark boxes
+  --ink-soft: #2c2c45; // active tab in the header
+  --text: #2e2e3a;
+  --muted: #6b6b76;
+  --paper: #f5f4f0; // page background
+  --paper-dim: #ebe8e2; // status bar, inactive buttons
+  --card: #fdfdfb;
+  --line: #e2e0da;
+  --accent: #a8255f; // magenta: main button, small labels, links
+  --accent-hover: #8e1d4f;
+  --accent-soft: #f3e6ec; // agent tip background
+  --cyan: #6ee0e6; // on dark backgrounds
+  --success: #1f6b4f;
+  --success-soft: #dff0ea;
+  --danger: #b3261e;
+
+  --font-title: 'Space Grotesk Variable', system-ui, sans-serif;
+  --font-body: 'Inter Variable', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, monospace;
+
+  --radius: 4px;
+  --page-width: 90rem;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-title);
+  color: var(--ink);
+  margin: 0;
+  line-height: 1.15;
+}
+
+a {
+  color: inherit;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+/* ---------- Page frame: every routed page starts with this block ---------- */
+
+.page {
+  max-width: var(--page-width);
+  margin: 0 auto;
+  padding: 3.5rem 3.5rem 5rem;
+}
+
+.page-head {
+  margin-bottom: 3rem;
+}
+
+.eyebrow {
+  display: flex;
+  gap: 0.75rem;
+  margin: 0 0 1.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.page-title {
+  font-size: 2.75rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.lead {
+  margin: 1.25rem 0 0;
+  font-size: 1.05rem;
+  color: var(--muted);
+}
+
+/* Small uppercase mono text: dates, counts, sources. */
+.label {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.label-accent {
+  color: var(--accent);
+}
+
+/* ---------- Cards and buttons ---------- */
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.8rem 1.4rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color 0.15s,
+    border-color 0.15s,
+    opacity 0.15s;
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+
+  &:hover:not(:disabled) {
+    background: var(--accent-hover);
+  }
+}
+
+.btn-secondary {
+  background: var(--card);
+  border-color: var(--line);
+  color: var(--ink);
+
+  &:hover:not(:disabled) {
+    border-color: var(--ink);
+  }
+}
+
+/* ---------- Messages ---------- */
+
+.error {
+  color: var(--danger);
+}
+
+.success {
+  color: var(--success);
+}
+
+.empty {
+  color: var(--muted);
+}
+
+/* Keyboard focus stays visible everywhere. */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* The slash between a number and a title: "01 / AI / LLM". */
+.sep {
+  margin: 0 0.35em;
+}

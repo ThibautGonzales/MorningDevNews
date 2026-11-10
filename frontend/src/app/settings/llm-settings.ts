@@ -11,7 +11,7 @@ interface Feedback {
   detail?: string;
 }
 
-/** Form where the user picks the LLM provider, the model and their API key. */
+/** Settings page: form where the user picks the LLM provider, the model and their API key. */
 @Component({
   selector: 'app-llm-settings',
   styleUrl: './llm-settings.scss',
@@ -37,6 +37,14 @@ export class LlmSettingsForm {
   /** Shown in the empty model field: the default model of the selected provider. */
   protected readonly defaultModel = computed(
     () => this.saved()?.providers.find((p) => p.id === this.provider())?.default_model ?? '',
+  );
+
+  /** The providers the backend knows, listed under the select. */
+  protected readonly providerNames = computed(
+    () =>
+      this.saved()
+        ?.providers.map((p) => p.label)
+        .join(', ') ?? '',
   );
 
   constructor() {

@@ -1,16 +1,32 @@
-<section>
-  <h2>{{ i18n.t('summaries.title') }}</h2>
-
-  <div class="tabs" role="group">
-    @for (tab of tabs; track tab.period) {
-      <button
-        type="button"
-        [class.active]="tab.period === period()"
-        [attr.aria-pressed]="tab.period === period()"
-        (click)="select(tab.period)"
-      >
-        {{ i18n.t(tab.label) }}
-      </button>
+<div class="page">
+  <div class="page-head">
+    <p class="eyebrow">
+      <span>{{ i18n.t('summaries.eyebrow') }}</span
+      ><span aria-hidden="true">/</span>
+      <span>{{ today | date: 'EEEE dd MMMM y' : undefined : i18n.language() }}</span>
+    </p>
+    <div class="title-row">
+      <h1 class="page-title">{{ i18n.t('summaries.title') }}</h1>
+      <div class="tabs" role="group" [attr.aria-label]="i18n.t('summaries.periods')">
+        @for (tab of tabs; track tab.period) {
+          <button
+            type="button"
+            [class.active]="tab.period === period()"
+            [attr.aria-pressed]="tab.period === period()"
+            (click)="select(tab.period)"
+          >
+            {{ i18n.t(tab.label) }}
+          </button>
+        }
+      </div>
+    </div>
+    <p class="lead">{{ i18n.t('summaries.lead') }}</p>
+    @if (topics().length) {
+      <p class="stats label">
+        <span class="strong">{{ pad(topics().length) }} {{ i18n.t('summaries.topics') }}</span>
+        <span class="label-accent">{{ pad(stats().tips) }} {{ i18n.t('summaries.tips') }}</span>
+        <span>{{ pad(stats().sources) }} {{ i18n.t('summaries.sourceArticles') }}</span>
+      </p>
     }
   </div>
 
@@ -18,44 +34,90 @@
     <p class="error">{{ i18n.t('summaries.loadFailed') }}</p>
   }
 
-  @for (topic of topics(); track topic.topic_id) {
-    <h3>{{ topic.topic_name }}</h3>
-    @if (topic.summary; as summary) {
-      <div class="meta">
-        @switch (period()) {
-          @case ('daily') {
-            <!-- The window of the summary: from the end of the previous one to the collection. -->
-            {{ i18n.t('summaries.since') }}
-            {{ summary.period_start | date: 'medium' : undefined : i18n.language() }}
+  @for (topic of topics(); track topic.topic_id; let i = $index) {
+    <section class="topic">
+      <div class="topic-head">
+        <div>
+          <h2>
+            {{ pad(i + 1) }}<span class="sep" aria-hidden="true">/</span>{{ topic.topic_name }}
+          </h2>
+          @if (topic.summary; as summary) {
+            <p class="headline">{{ summary.headline }}</p>
           }
-          @case ('weekly') {
-            {{ i18n.t('summaries.from') }}
-            {{ summary.period_start | date: 'longDate' : undefined : i18n.language() }}
-            {{ i18n.t('summaries.to') }}
-            {{ lastDay(summary) | date: 'longDate' : undefined : i18n.language() }}
-          }
-          @case ('monthly') {
-            {{ summary.period_start | date: 'MMMM y' : undefined : i18n.language() }}
-          }
+        </div>
+        @if (topic.summary; as summary) {
+          <div class="period">
+            <span class="label label-accent">
+              @switch (period()) {
+                @case ('daily') {
+                  {{ i18n.t('summaries.daily') }}
+                }
+                @case ('weekly') {
+                  {{ i18n.t('summaries.weekNumber') }} {{ weekNumber(summary) }}
+                }
+                @case ('monthly') {
+                  {{ i18n.t('summaries.monthly') }}
+                }
+              }
+            </span>
+            <span class="meta">
+              @switch (period()) {
+                @case ('daily') {
+                  <!-- The window of the summary: from the end of the previous one to the collection. -->
+                  {{ i18n.t('summaries.since') }}
+                  {{ summary.period_start | date: 'medium' : undefined : i18n.language() }}
+                }
+                @case ('weekly') {
+                  {{ i18n.t('summaries.from') }}
+                  {{ summary.period_start | date: 'longDate' : undefined : i18n.language() }}
+                  {{ i18n.t('summaries.to') }}
+                  {{ lastDay(summary) | date: 'longDate' : undefined : i18n.language() }}
+                }
+                @case ('monthly') {
+                  {{ summary.period_start | date: 'MMMM y' : undefined : i18n.language() }}
+                }
+              }
+            </span>
+          </div>
         }
       </div>
-      <p class="headline">{{ summary.headline }}</p>
-      <ul>
-        @for (point of summary.points; track $index) {
-          <li>
-            <strong>{{ point.tech }}</strong>
-            <div>{{ point.whats_new }}</div>
-            <div class="tip">{{ i18n.t('summaries.agentTip') }} {{ point.agent_tip }}</div>
-            <div class="sources">
-              @for (article of point.articles; track article.id) {
-                <a [href]="article.url" target="_blank" rel="noopener">{{ article.title }}</a>
+
+      @if (topic.summary; as summary) {
+        <ul class="points">
+          @for (point of summary.points; track $index) {
+            <li class="card point">
+              <h3>{{ point.tech }}</h3>
+              <p class="whats-new">{{ point.whats_new }}</p>
+              <div class="tip">
+                <div class="tip-head">
+                  <span>{{ i18n.t('summaries.agentTip') }}</span>
+                  <button type="button" (click)="copy(point.agent_tip)">
+                    {{
+                      copied() === point.agent_tip
+                        ? i18n.t('summaries.copied')
+                        : i18n.t('summaries.copy')
+                    }}
+                  </button>
+                </div>
+                <p>{{ point.agent_tip }}</p>
+              </div>
+              @if (point.articles.length) {
+                <div class="sources">
+                  <p class="label">
+                    {{ i18n.t('summaries.sources') }} <span aria-hidden="true">/</span>
+                    {{ pad(point.articles.length) }}
+                  </p>
+                  @for (article of point.articles; track article.id) {
+                    <a [href]="article.url" target="_blank" rel="noopener">{{ article.title }} ↗</a>
+                  }
+                </div>
               }
-            </div>
-          </li>
-        }
-      </ul>
-    } @else {
-      <p class="empty">{{ i18n.t(neverKey()) }}</p>
-    }
+            </li>
+          }
+        </ul>
+      } @else {
+        <p class="empty">{{ i18n.t(neverKey()) }}</p>
+      }
+    </section>
   }
-</section>
+</div>
