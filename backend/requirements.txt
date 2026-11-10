@@ -3,3 +3,8 @@ uvicorn==0.54.0
 sqlmodel==0.0.48
 feedparser==6.0.14
 httpx==0.28.1
+langchain==1.4.9
+langchain-openai==1.7.4
+langchain-anthropic==1.7.10
+langchain-google-genai==4.4.3
+langchain-mistralai==1.1.6

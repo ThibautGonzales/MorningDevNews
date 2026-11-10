@@ -49,6 +49,16 @@ The API answers on http://localhost:8000 (auto-generated docs at http://localhos
 On the first start the backend creates the SQLite database `backend/morningdevnews.db`
 (ignored by Git) and inserts two example topics. Delete the file to start again from scratch.
 
+## LLM settings
+
+The app works with OpenAI, Anthropic (Claude), Google (Gemini) or Mistral AI, through
+LangChain. You choose the provider, the model and your API key; they are saved in the local
+SQLite database. Until the settings page exists, use http://localhost:8000/docs:
+
+- `PUT /api/settings` with `{"api_key": "..."}` (the provider is guessed from the key prefix,
+  except for Mistral: add `"provider": "mistralai"`), and optionally `"model"`;
+- `POST /api/settings/test` checks that the key and the model work.
+
 **Frontend** (from `frontend/`):
 
 ```bash
