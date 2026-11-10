@@ -2,6 +2,7 @@
 
 from datetime import UTC, datetime
 from enum import Enum
+from typing import ClassVar
 
 from sqlmodel import Field, SQLModel
 
@@ -81,3 +82,14 @@ class Summary(SQLModel, table=True):
     period_end: datetime
     content: str
     created_at: datetime = Field(default_factory=utc_now)
+
+
+class LlmSettings(SQLModel, table=True):
+    """The LLM the user chose in the settings. The table always holds a single row (id 1)."""
+
+    SINGLE_ROW_ID: ClassVar[int] = 1
+
+    id: int | None = Field(default=None, primary_key=True)
+    provider: str | None = None  # a key of llm.PROVIDERS, e.g. "anthropic"
+    model: str | None = None  # None means the provider's default model
+    # The API key is a secret: it lives in backend/.env, not in this table (see llm.py).
