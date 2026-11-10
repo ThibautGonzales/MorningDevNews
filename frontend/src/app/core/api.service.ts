@@ -66,7 +66,7 @@ export interface SummaryArticle {
   url: string;
 }
 
-/** One technology in a daily summary, and how to ask a coding agent to use it. */
+/** One technology in a summary, and how to ask a coding agent to use it. */
 export interface SummaryPoint {
   tech: string;
   whats_new: string;
@@ -74,19 +74,26 @@ export interface SummaryPoint {
   articles: SummaryArticle[];
 }
 
-/** What the LLM wrote for one topic about the articles collected between the two dates. */
-export interface DailySummary {
+/** The periods the backend summarizes: every collection, every week, every month. */
+export type SummaryPeriod = 'daily' | 'weekly' | 'monthly';
+
+/**
+ * What the LLM wrote for one topic over the period. For a daily summary, the period runs from
+ * the previous summary to the collection; for a week or a month, period_end is excluded
+ * (midnight on the next Monday, or on the 1st of the next month).
+ */
+export interface Summary {
   period_start: string;
   period_end: string;
   headline: string;
   points: SummaryPoint[];
 }
 
-/** One topic with its latest daily summary, or null if it never had one. */
-export interface TopicDailySummary {
+/** One topic with its latest summary of a period, or null if it never had one. */
+export interface TopicSummary {
   topic_id: number;
   topic_name: string;
-  summary: DailySummary | null;
+  summary: Summary | null;
 }
 
 /** Single access point to the backend: every HTTP call goes through here. */
@@ -106,8 +113,8 @@ export class ApiService {
     return this.http.post<Run>('/api/runs', null, { params: { language } });
   }
 
-  getLatestSummaries(): Observable<TopicDailySummary[]> {
-    return this.http.get<TopicDailySummary[]>('/api/summaries/latest');
+  getLatestSummaries(period: SummaryPeriod): Observable<TopicSummary[]> {
+    return this.http.get<TopicSummary[]>('/api/summaries/latest', { params: { period } });
   }
 
   getRelevantArticles(): Observable<TopicArticles[]> {

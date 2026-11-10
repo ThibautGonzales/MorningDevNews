@@ -45,7 +45,7 @@ describe('CollectButton', () => {
     expect(compiled.querySelector('.relevance')?.textContent).toContain(
       '3 relevant articles out of 10',
     );
-    expect(compiled.querySelector('.summaries')?.textContent).toContain('2 daily summaries');
+    expect(compiled.querySelector('.summaries')?.textContent).toContain('2 summaries written');
     expect(compiled.querySelector('pre')?.textContent).toContain('Real Python');
   });
 

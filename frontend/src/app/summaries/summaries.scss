@@ -28,3 +28,13 @@ li {
 .error {
   color: #b00020;
 }
+
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.tabs button.active {
+  font-weight: bold;
+}

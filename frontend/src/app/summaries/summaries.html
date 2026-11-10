@@ -1,0 +1,61 @@
+<section>
+  <h2>{{ i18n.t('summaries.title') }}</h2>
+
+  <div class="tabs" role="group">
+    @for (tab of tabs; track tab.period) {
+      <button
+        type="button"
+        [class.active]="tab.period === period()"
+        [attr.aria-pressed]="tab.period === period()"
+        (click)="select(tab.period)"
+      >
+        {{ i18n.t(tab.label) }}
+      </button>
+    }
+  </div>
+
+  @if (loadFailed()) {
+    <p class="error">{{ i18n.t('summaries.loadFailed') }}</p>
+  }
+
+  @for (topic of topics(); track topic.topic_id) {
+    <h3>{{ topic.topic_name }}</h3>
+    @if (topic.summary; as summary) {
+      <div class="meta">
+        @switch (period()) {
+          @case ('daily') {
+            <!-- The window of the summary: from the end of the previous one to the collection. -->
+            {{ i18n.t('summaries.since') }}
+            {{ summary.period_start | date: 'medium' : undefined : i18n.language() }}
+          }
+          @case ('weekly') {
+            {{ i18n.t('summaries.from') }}
+            {{ summary.period_start | date: 'longDate' : undefined : i18n.language() }}
+            {{ i18n.t('summaries.to') }}
+            {{ lastDay(summary) | date: 'longDate' : undefined : i18n.language() }}
+          }
+          @case ('monthly') {
+            {{ summary.period_start | date: 'MMMM y' : undefined : i18n.language() }}
+          }
+        }
+      </div>
+      <p class="headline">{{ summary.headline }}</p>
+      <ul>
+        @for (point of summary.points; track $index) {
+          <li>
+            <strong>{{ point.tech }}</strong>
+            <div>{{ point.whats_new }}</div>
+            <div class="tip">{{ i18n.t('summaries.agentTip') }} {{ point.agent_tip }}</div>
+            <div class="sources">
+              @for (article of point.articles; track article.id) {
+                <a [href]="article.url" target="_blank" rel="noopener">{{ article.title }}</a>
+              }
+            </div>
+          </li>
+        }
+      </ul>
+    } @else {
+      <p class="empty">{{ i18n.t(neverKey()) }}</p>
+    }
+  }
+</section>
