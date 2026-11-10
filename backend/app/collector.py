@@ -1,4 +1,4 @@
-"""Collection job: reads the feed of every enabled source and stores the new articles.
+"""Collection job: reads the feed of every enabled source of an enabled topic and stores the new articles.
 
 Try it on its own (it creates and seeds the database if needed):
     python -m app.collector
@@ -7,7 +7,7 @@ Try it on its own (it creates and seeds the database if needed):
 from sqlmodel import Session, select
 
 from app.feeds import FeedEntry, discover_feed_url, fetch_feed
-from app.models import Article, Run, RunStatus, Source, utc_now
+from app.models import Article, Run, RunStatus, Source, Topic, utc_now
 from app.period_summarizer import summarize_finished_periods
 from app.relevance import judge_new_articles
 from app.summarizer import summarize_new_articles
@@ -28,7 +28,8 @@ def run_collection(session: Session, language: str = "en") -> Run:
     session.add(run)
     session.commit()  # the run is visible as "running" while the job works
 
-    sources = session.exec(select(Source).where(Source.enabled)).all()
+    # A disabled topic is paused: its sources are not read either.
+    sources = session.exec(select(Source).join(Topic).where(Source.enabled, Topic.enabled)).all()
     added = 0
     errors = []
     for source in sources:

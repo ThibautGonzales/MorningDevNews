@@ -23,10 +23,11 @@ from app.llm import (
     read_api_key,
     save_api_key,
 )
-from app.models import LlmSettings, Run, SummaryPeriod, Topic
+from app.models import LlmSettings, Run, SummaryPeriod
 from app.seed import seed_example_topics
 from app.summaries import PeriodSummaries, summaries_of
 from app.summarizer import LANGUAGES
+from app.topics import router as topics_router
 
 
 @asynccontextmanager
@@ -38,18 +39,14 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
 
 app = FastAPI(title="MorningDevNews API", lifespan=lifespan)
+# The topics and their sources (Topic settings page) live in topics.py.
+app.include_router(topics_router)
 
 
 @app.get("/api/health")
 def health() -> dict:
     """Lets the frontend (and you) check that the backend is up."""
     return {"status": "ok"}
-
-
-@app.get("/api/topics")
-def list_topics(session: Session = Depends(get_session)) -> list[Topic]:
-    """Temporary read-only endpoint to check the seeded data in /docs."""
-    return list(session.exec(select(Topic)))
 
 
 @app.post("/api/runs")
