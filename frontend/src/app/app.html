@@ -17,6 +17,8 @@
   <p>
     {{ i18n.t('backend.label') }}: <strong>{{ i18n.t(backendStatus()) }}</strong>
   </p>
-  <app-collect-button />
+  <!-- After a collection, the list reloads to show the newly judged articles. -->
+  <app-collect-button (collected)="articles.reload()" />
+  <app-relevant-articles #articles />
   <app-llm-settings />
 </main>

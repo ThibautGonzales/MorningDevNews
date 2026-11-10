@@ -1,0 +1,27 @@
+<section>
+  <h2>{{ i18n.t('articles.title') }}</h2>
+
+  @if (loadFailed()) {
+    <p class="error">{{ i18n.t('articles.loadFailed') }}</p>
+  }
+
+  @for (topic of topics(); track topic.topic_id) {
+    <h3>{{ topic.topic_name }} ({{ topic.articles.length }})</h3>
+    <ul>
+      @for (article of topic.articles; track article.id) {
+        <li>
+          <a [href]="article.url" target="_blank" rel="noopener">{{ article.title }}</a>
+          <div class="meta">
+            {{ article.source_name }} ·
+            {{ article.published_at | date: 'mediumDate' : undefined : i18n.language() }}
+          </div>
+          @if (article.relevance_reason) {
+            <div class="reason">{{ article.relevance_reason }}</div>
+          }
+        </li>
+      } @empty {
+        <li class="empty">{{ i18n.t('articles.none') }}</li>
+      }
+    </ul>
+  }
+</section>

@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, output, signal } from '@angular/core';
 import { ApiService, Run } from '../core/api.service';
 import { I18nService } from '../core/i18n/i18n.service';
 
@@ -18,6 +18,8 @@ export class CollectButton {
   protected readonly lastRun = signal<Run | null>(null);
   /** True when the request itself failed (backend down, server error). */
   protected readonly requestFailed = signal(false);
+  /** Emitted after each finished run, so the page can reload what depends on it. */
+  readonly collected = output<Run>();
 
   protected collect(): void {
     this.running.set(true);
@@ -26,6 +28,7 @@ export class CollectButton {
       next: (run) => {
         this.lastRun.set(run);
         this.running.set(false);
+        this.collected.emit(run);
       },
       error: () => {
         this.lastRun.set(null);
