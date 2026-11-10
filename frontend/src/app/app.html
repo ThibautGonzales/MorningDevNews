@@ -10,6 +10,9 @@
       </select>
     </label>
   </header>
-  <p>{{ i18n.t('backend.label') }}: <strong>{{ i18n.t(backendStatus()) }}</strong></p>
+  <p>
+    {{ i18n.t('backend.label') }}: <strong>{{ i18n.t(backendStatus()) }}</strong>
+  </p>
   <app-collect-button />
+  <app-llm-settings />
 </main>

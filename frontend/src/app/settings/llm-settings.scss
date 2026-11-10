@@ -1,0 +1,19 @@
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.error {
+  color: #b00020;
+}
+
+.success {
+  color: #1b5e20;
+}

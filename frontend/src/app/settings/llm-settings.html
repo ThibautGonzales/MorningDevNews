@@ -1,0 +1,56 @@
+<section>
+  <h2>{{ i18n.t('settings.title') }}</h2>
+
+  @if (saved(); as settings) {
+    <label>
+      {{ i18n.t('settings.provider') }}
+      <select [value]="provider()" (change)="onProviderChange($event)">
+        <option value="">{{ i18n.t('settings.providerGuessed') }}</option>
+        @for (p of settings.providers; track p.id) {
+          <option [value]="p.id">{{ p.label }}</option>
+        }
+      </select>
+    </label>
+
+    <label>
+      {{ i18n.t('settings.apiKey') }}
+      <input
+        type="password"
+        autocomplete="off"
+        [value]="apiKey()"
+        [placeholder]="
+          settings.api_key_hint ? i18n.t('settings.apiKeySaved') + ' ' + settings.api_key_hint : ''
+        "
+        (input)="onApiKeyInput($event)"
+      />
+    </label>
+
+    <label>
+      {{ i18n.t('settings.model') }}
+      <input
+        type="text"
+        [value]="model()"
+        [placeholder]="defaultModel()"
+        (input)="onModelInput($event)"
+      />
+    </label>
+
+    <div class="actions">
+      <button type="button" [disabled]="busy()" (click)="save()">
+        {{ i18n.t('settings.save') }}
+      </button>
+      <button type="button" [disabled]="busy() || !settings.api_key_hint" (click)="test()">
+        {{ i18n.t('settings.test') }}
+      </button>
+    </div>
+  }
+
+  @if (feedback(); as f) {
+    <p [class]="f.error ? 'error' : 'success'">
+      {{ i18n.t(f.key) }}
+      @if (f.detail) {
+        <br /><small>{{ f.detail }}</small>
+      }
+    </p>
+  }
+</section>
