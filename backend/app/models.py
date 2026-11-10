@@ -63,6 +63,9 @@ class Run(SQLModel, table=True):
     finished_at: datetime | None = None
     status: RunStatus = RunStatus.running
     articles_fetched: int = 0
+    # Filled by the relevance judge after the collection (step 4d).
+    articles_judged: int = 0
+    articles_relevant: int = 0
     error: str | None = None
 
 

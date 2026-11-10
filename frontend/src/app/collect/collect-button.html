@@ -7,6 +7,10 @@
     <p class="error">{{ i18n.t('collect.failed') }}</p>
   } @else {
     <p class="result">{{ run.articles_fetched }} {{ i18n.t('collect.newArticles') }}</p>
+    <p class="relevance">
+      {{ run.articles_relevant }} {{ i18n.t('collect.relevantOutOf') }} {{ run.articles_judged }}
+      {{ i18n.t('collect.judged') }}
+    </p>
   }
   @if (run.error) {
     <p class="error">{{ i18n.t('collect.sourceErrors') }}</p>
