@@ -25,6 +25,8 @@ LANGUAGES = {"en": "English", "fr": "French"}
 FIRST_WINDOW_HOURS = 24
 # Upper bound on what one summary reads, to keep the prompt (and its cost) small.
 MAX_ARTICLES_PER_SUMMARY = 50
+# A short list read in two minutes beats an exhaustive one.
+MAX_POINTS = 5
 
 
 # ---------- What the LLM must answer (validated by LangChain's structured output) ----------
@@ -106,8 +108,11 @@ def summary_prompt(topic: Topic, articles: list[Article], language: str) -> str:
         "libraries, models or features exist, so they can ask their coding agent to use them.\n"
         f"Topic: {topic.name}\n"
         f"What is relevant: {topic.description}\n\n"
-        "Group the articles below into a few points (at most 7), one per technology.\n"
+        f"Group the articles below into a few points (at most {MAX_POINTS}), one per technology.\n"
         "Merge articles about the same thing, skip what brings nothing new.\n"
+        "Only keep a point if you can give a concrete agent_tip: something the developer can\n"
+        "ask a coding agent to do now. Drop news, research, benchmarks and stories with no\n"
+        "such action, rather than writing a vague or \"not usable yet\" tip.\n"
         "Give each point the numbers of its articles in article_ids.\n"
         f"Write in {LANGUAGES[language]}.\n\n"
         f"{blocks}"
