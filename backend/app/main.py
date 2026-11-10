@@ -12,7 +12,15 @@ from sqlmodel import Session, select
 
 from app.collector import run_collection
 from app.database import create_db_and_tables, get_session
-from app.llm import PROVIDERS, effective_model, get_chat_model, get_settings, guess_provider
+from app.llm import (
+    PROVIDERS,
+    effective_model,
+    get_chat_model,
+    get_settings,
+    guess_provider,
+    read_api_key,
+    save_api_key,
+)
 from app.models import LlmSettings, Run, Topic
 from app.seed import seed_example_topics
 
@@ -62,8 +70,8 @@ class SettingsIn(BaseModel):
 
 
 def public_settings(settings: LlmSettings) -> dict:
-    """The settings as the frontend sees them: the API key is masked."""
-    key = settings.api_key or ""
+    """The settings as the frontend sees them: only the last 4 characters of the key."""
+    key = read_api_key() or ""
     return {
         "provider": settings.provider,
         "model": effective_model(settings),
@@ -85,9 +93,10 @@ def update_settings(body: SettingsIn, session: Session = Depends(get_session)) -
     """Saves the fields that were sent. Changing provider resets the model to its default."""
     settings = get_settings(session)
     if body.api_key:
-        settings.api_key = body.api_key.strip()
+        api_key = body.api_key.strip()
+        save_api_key(api_key)
         if not body.provider:
-            settings.provider = guess_provider(settings.api_key) or settings.provider
+            settings.provider = guess_provider(api_key) or settings.provider
     if body.provider:
         if body.provider not in PROVIDERS:
             raise HTTPException(400, "Unknown provider")

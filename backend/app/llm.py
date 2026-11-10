@@ -3,6 +3,9 @@
 Same approach as ReadItForMe: one function, get_chat_model(), works for the four providers.
 """
 
+from pathlib import Path
+
+from dotenv import dotenv_values, set_key
 from langchain.chat_models import init_chat_model
 from langchain_core.language_models import BaseChatModel
 from sqlmodel import Session
@@ -19,6 +22,11 @@ PROVIDERS = {
 }
 
 
+# The API key is kept out of the database, in backend/.env (ignored by Git, never leaves the disk).
+ENV_PATH = Path(__file__).resolve().parent.parent / ".env"
+API_KEY_VAR = "LLM_API_KEY"
+
+
 class LlmNotConfiguredError(Exception):
     """No provider or no API key saved yet."""
 
@@ -33,6 +41,19 @@ def guess_provider(api_key: str) -> str | None:
     if key.startswith("sk-"):  # after "sk-ant-", which also starts with "sk-"
         return "openai"
     return None
+
+
+def read_api_key() -> str | None:
+    """Reads the key from backend/.env at each call, so a key saved from the UI is used at once."""
+    if not ENV_PATH.exists():
+        return None
+    return dotenv_values(ENV_PATH).get(API_KEY_VAR) or None
+
+
+def save_api_key(api_key: str) -> None:
+    """Writes the key to backend/.env, creating the file if needed. Other variables are kept."""
+    ENV_PATH.touch(exist_ok=True)
+    set_key(ENV_PATH, API_KEY_VAR, api_key)
 
 
 def get_settings(session: Session) -> LlmSettings:
@@ -57,7 +78,8 @@ def effective_model(settings: LlmSettings) -> str | None:
 
 def get_chat_model(settings: LlmSettings) -> BaseChatModel:
     """Builds the LangChain chat model from the saved settings."""
-    if settings.provider not in PROVIDERS or not settings.api_key:
+    api_key = read_api_key()
+    if settings.provider not in PROVIDERS or not api_key:
         raise LlmNotConfiguredError("Set a provider and an API key in the settings.")
     key_arg = PROVIDERS[settings.provider]["key_param"]
     # Bounded timeout and retries so a wrong model or a quota error fails fast instead of hanging.
@@ -66,5 +88,5 @@ def get_chat_model(settings: LlmSettings) -> BaseChatModel:
         model_provider=settings.provider,
         timeout=60,
         max_retries=2,
-        **{key_arg: settings.api_key},
+        **{key_arg: api_key},
     )

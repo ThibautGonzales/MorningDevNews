@@ -52,8 +52,10 @@ On the first start the backend creates the SQLite database `backend/morningdevne
 ## LLM settings
 
 The app works with OpenAI, Anthropic (Claude), Google (Gemini) or Mistral AI, through
-LangChain. You choose the provider, the model and your API key; they are saved in the local
-SQLite database. Until the settings page exists, use http://localhost:8000/docs:
+LangChain. You choose the provider, the model and your API key. The provider and the model
+are saved in the SQLite database; the API key is written to `backend/.env` (variable
+`LLM_API_KEY`), which is ignored by Git and never leaves your disk. You can also edit that
+file by hand. Until the settings page exists, use http://localhost:8000/docs:
 
 - `PUT /api/settings` with `{"api_key": "..."}` (the provider is guessed from the key prefix,
   except for Mistral: add `"provider": "mistralai"`), and optionally `"model"`;

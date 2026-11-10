@@ -92,6 +92,4 @@ class LlmSettings(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     provider: str | None = None  # a key of llm.PROVIDERS, e.g. "anthropic"
     model: str | None = None  # None means the provider's default model
-    # Stored in clear text in the local database file (ignored by Git), like ReadItForMe's
-    # settings.json. The API never sends it back in full.
-    api_key: str | None = None
+    # The API key is a secret: it lives in backend/.env, not in this table (see llm.py).
