@@ -66,7 +66,8 @@ class Run(SQLModel, table=True):
     # Filled by the relevance judge after the collection (step 4d).
     articles_judged: int = 0
     articles_relevant: int = 0
-    # Filled by the daily summary after the judge (step 5b): one per topic with news.
+    # Filled by the daily summary after the judge (step 5b): one per topic with news,
+    # plus the weekly and monthly summaries written in this run (step 6b).
     summaries_created: int = 0
     error: str | None = None
 
@@ -85,7 +86,7 @@ class Summary(SQLModel, table=True):
     period: SummaryPeriod
     period_start: datetime
     period_end: datetime
-    # A daily summary holds summarizer.TopicSummary as JSON (headline and points).
+    # Every period holds summarizer.TopicSummary as JSON (headline and points).
     content: str
     created_at: datetime = Field(default_factory=utc_now)
 
