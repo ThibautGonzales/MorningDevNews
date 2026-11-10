@@ -21,11 +21,11 @@ start.bat   Starts everything on Windows
 Double-click `start.bat` (or run it from a terminal). It:
 
 1. creates the Python virtual environment `backend/.venv` and installs the backend dependencies,
-2. installs the frontend dependencies if `frontend/node_modules` is missing,
+2. installs the frontend dependencies on the first start, and again whenever
+   `frontend/package-lock.json` changed (a new dependency after a `git pull`),
 3. opens two windows, one for the backend and one for the frontend, and opens http://localhost:4200.
 
-Close the two windows to stop the app. If you change `frontend/package.json`, run
-`npm install` in `frontend/` (the script only installs when `node_modules` is missing).
+Close the two windows to stop the app.
 
 ## Manual start (any OS)
 
