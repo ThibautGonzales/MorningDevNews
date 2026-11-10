@@ -6,17 +6,26 @@ Most articles are sorted out by their title, so few tokens are spent on content.
 
 Try it on its own (reads the database, writes nothing):
     python -m app.relevance
+After each collection, judge_new_articles() runs it on the new articles and saves the verdicts.
 """
 
+from collections import defaultdict
 from dataclasses import dataclass
+from datetime import timedelta
 from typing import Literal
 
 from langchain_core.language_models import BaseChatModel
 from pydantic import BaseModel, Field
+from sqlmodel import Session, and_, or_, select
 
-from app.models import Article, Topic
+from app.llm import LlmNotConfiguredError, get_chat_model, get_settings
+from app.models import Article, Run, Source, Topic, utc_now
 
 BATCH_SIZE = 20
+# Only recent articles are judged: the first collection brings back months of history.
+MAX_AGE_DAYS = 7
+# Upper bound on LLM work per run, whatever the number of new articles.
+MAX_ARTICLES_PER_RUN = 200
 
 
 # ---------- What the LLM must answer (validated by LangChain's structured output) ----------
@@ -132,14 +141,80 @@ def judge_articles(model: BaseChatModel, topic: Topic, articles: list[Article]) 
     return judgments
 
 
+# ---------- After a collection: judge the new articles and save the verdicts ----------
+
+
+def pending_articles(session: Session) -> list[tuple[Article, int]]:
+    """Not yet judged articles of the last MAX_AGE_DAYS, most recent first, with their topic id.
+
+    An article without a publication date counts from the day it was fetched.
+    """
+    cutoff = utc_now() - timedelta(days=MAX_AGE_DAYS)
+    recent = or_(
+        Article.published_at >= cutoff,
+        and_(Article.published_at.is_(None), Article.fetched_at >= cutoff),
+    )
+    query = (
+        select(Article, Source.topic_id)
+        .join(Source)
+        .join(Topic)
+        .where(Article.is_relevant.is_(None), Topic.enabled, recent)
+        .order_by(Article.published_at.desc())
+        .limit(MAX_ARTICLES_PER_RUN)
+    )
+    return list(session.exec(query))
+
+
+def save_judgments(session: Session, articles: list[Article], judgments: list[Judgment]) -> None:
+    by_id = {a.id: a for a in articles}
+    for j in judgments:
+        article = by_id[j.article_id]
+        article.is_relevant = j.is_relevant
+        article.relevance_reason = j.reason
+        session.add(article)
+    session.commit()
+
+
+def judge_new_articles(session: Session, run: Run) -> None:
+    """Judges the pending articles topic by topic and records the counts on the run.
+
+    Never raises: a missing LLM setting or a provider error is added to run.error, and
+    the articles left unjudged will be tried again on the next run.
+    """
+    try:
+        model = get_chat_model(get_settings(session))
+    except LlmNotConfiguredError as exc:
+        run.error = "\n".join(filter(None, [run.error, f"Relevance skipped: {exc}"]))
+        return
+
+    articles_by_topic = defaultdict(list)
+    for article, topic_id in pending_articles(session):
+        articles_by_topic[topic_id].append(article)
+
+    judged = relevant = 0
+    errors = []
+    for topic_id, articles in articles_by_topic.items():
+        topic = session.get(Topic, topic_id)
+        try:
+            judgments = judge_articles(model, topic, articles)
+            save_judgments(session, articles, judgments)
+        except Exception as exc:  # one failing topic (quota, timeout) must not stop the others
+            session.rollback()
+            errors.append(f"Relevance ({topic.name}): {exc}")
+            continue
+        judged += len(judgments)
+        relevant += sum(j.is_relevant for j in judgments)
+
+    # Set after the loop: a rollback reloads run from the database (see collector.py).
+    run.articles_judged = judged
+    run.articles_relevant = relevant
+    run.error = "\n".join(filter(None, [run.error, *errors])) or None
+
+
 if __name__ == "__main__":
     import sys
 
-    from sqlmodel import Session, select
-
     from app.database import engine
-    from app.llm import get_chat_model, get_settings
-    from app.models import Source
 
     # The Windows console defaults to cp1252, which cannot print every character an
     # article title or an LLM reason may contain.

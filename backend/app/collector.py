@@ -8,6 +8,7 @@ from sqlmodel import Session, select
 
 from app.feeds import FeedEntry, discover_feed_url, fetch_feed
 from app.models import Article, Run, RunStatus, Source, utc_now
+from app.relevance import judge_new_articles
 
 
 class FeedNotFoundError(Exception):
@@ -15,7 +16,7 @@ class FeedNotFoundError(Exception):
 
 
 def run_collection(session: Session) -> Run:
-    """Collects every enabled source and records the whole execution as a Run.
+    """Collects every enabled source, judges the new articles, and records it all as a Run.
 
     A failing source is logged in run.error and skipped: the other sources still run.
     """
@@ -33,7 +34,6 @@ def run_collection(session: Session) -> Run:
             session.rollback()
             errors.append(f"{source.name}: {exc}")
 
-    run.finished_at = utc_now()
     # Counted in a local variable: a rollback reloads run from the database,
     # which would wipe a counter kept on run.articles_fetched.
     run.articles_fetched = added
@@ -41,6 +41,11 @@ def run_collection(session: Session) -> Run:
     all_failed = bool(sources) and len(errors) == len(sources)
     run.status = RunStatus.failed if all_failed else RunStatus.success
     run.error = "\n".join(errors) or None
+    session.add(run)
+    session.commit()  # saved before judging, so a rollback in the judge cannot undo it
+
+    judge_new_articles(session, run)
+    run.finished_at = utc_now()
     session.add(run)
     session.commit()
     session.refresh(run)
@@ -93,6 +98,9 @@ if __name__ == "__main__":
     seed_example_topics()
     with Session(engine) as session:
         result = run_collection(session)
-        print(f"Run {result.id}: {result.status.value}, {result.articles_fetched} new articles")
+        print(
+            f"Run {result.id}: {result.status.value}, {result.articles_fetched} new articles, "
+            f"{result.articles_relevant} relevant out of {result.articles_judged} judged"
+        )
         if result.error:
             print(f"Errors:\n{result.error}")

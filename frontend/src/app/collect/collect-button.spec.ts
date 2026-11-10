@@ -30,12 +30,17 @@ describe('CollectButton', () => {
       finished_at: '',
       status: 'success',
       articles_fetched: 12,
+      articles_judged: 10,
+      articles_relevant: 3,
       error: 'Real Python: 403 Forbidden',
     });
     await fixture.whenStable();
 
     expect(button.disabled).toBe(false);
     expect(compiled.querySelector('.result')?.textContent).toContain('12 new articles');
+    expect(compiled.querySelector('.relevance')?.textContent).toContain(
+      '3 relevant articles out of 10',
+    );
     expect(compiled.querySelector('pre')?.textContent).toContain('Real Python');
   });
 

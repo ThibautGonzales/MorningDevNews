@@ -13,6 +13,8 @@ export interface Run {
   finished_at: string | null;
   status: 'running' | 'success' | 'failed';
   articles_fetched: number;
+  articles_judged: number;
+  articles_relevant: number;
   error: string | null;
 }
 
