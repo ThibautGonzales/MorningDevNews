@@ -1,0 +1,30 @@
+ul {
+  padding-left: 1.25rem;
+}
+
+li {
+  margin-bottom: 0.75rem;
+}
+
+.headline {
+  font-weight: bold;
+}
+
+.meta,
+.sources {
+  font-size: 0.85rem;
+  color: #555;
+}
+
+.tip {
+  font-style: italic;
+}
+
+/* One line per source article under its point. */
+.sources a {
+  display: block;
+}
+
+.error {
+  color: #b00020;
+}

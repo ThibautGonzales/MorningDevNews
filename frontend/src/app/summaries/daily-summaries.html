@@ -1,0 +1,35 @@
+<section>
+  <h2>{{ i18n.t('summaries.title') }}</h2>
+
+  @if (loadFailed()) {
+    <p class="error">{{ i18n.t('summaries.loadFailed') }}</p>
+  }
+
+  @for (topic of topics(); track topic.topic_id) {
+    <h3>{{ topic.topic_name }}</h3>
+    @if (topic.summary; as summary) {
+      <!-- The window of the summary: from the end of the previous one to the collection. -->
+      <div class="meta">
+        {{ i18n.t('summaries.since') }}
+        {{ summary.period_start | date: 'medium' : undefined : i18n.language() }}
+      </div>
+      <p class="headline">{{ summary.headline }}</p>
+      <ul>
+        @for (point of summary.points; track $index) {
+          <li>
+            <strong>{{ point.tech }}</strong>
+            <div>{{ point.whats_new }}</div>
+            <div class="tip">{{ i18n.t('summaries.agentTip') }} {{ point.agent_tip }}</div>
+            <div class="sources">
+              @for (article of point.articles; track article.id) {
+                <a [href]="article.url" target="_blank" rel="noopener">{{ article.title }}</a>
+              }
+            </div>
+          </li>
+        }
+      </ul>
+    } @else {
+      <p class="empty">{{ i18n.t('summaries.never') }}</p>
+    }
+  }
+</section>

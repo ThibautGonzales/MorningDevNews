@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
+import { Language } from './i18n/translations';
 
 export interface Health {
   status: string;
@@ -15,6 +16,7 @@ export interface Run {
   articles_fetched: number;
   articles_judged: number;
   articles_relevant: number;
+  summaries_created: number;
   error: string | null;
 }
 
@@ -57,6 +59,36 @@ export interface TopicArticles {
   articles: RelevantArticle[];
 }
 
+/** An article a summary point comes from. */
+export interface SummaryArticle {
+  id: number;
+  title: string;
+  url: string;
+}
+
+/** One technology in a daily summary, and how to ask a coding agent to use it. */
+export interface SummaryPoint {
+  tech: string;
+  whats_new: string;
+  agent_tip: string;
+  articles: SummaryArticle[];
+}
+
+/** What the LLM wrote for one topic about the articles collected between the two dates. */
+export interface DailySummary {
+  period_start: string;
+  period_end: string;
+  headline: string;
+  points: SummaryPoint[];
+}
+
+/** One topic with its latest daily summary, or null if it never had one. */
+export interface TopicDailySummary {
+  topic_id: number;
+  topic_name: string;
+  summary: DailySummary | null;
+}
+
 /** Single access point to the backend: every HTTP call goes through here. */
 @Injectable({ providedIn: 'root' })
 export class ApiService {
@@ -66,9 +98,16 @@ export class ApiService {
     return this.http.get<Health>('/api/health');
   }
 
-  /** Collects every enabled source now. The response arrives once the collection is finished. */
-  startRun(): Observable<Run> {
-    return this.http.post<Run>('/api/runs', null);
+  /**
+   * Collects every enabled source now, then judges and summarizes the new articles.
+   * The summaries are written in `language`. The response arrives once everything is finished.
+   */
+  startRun(language: Language): Observable<Run> {
+    return this.http.post<Run>('/api/runs', null, { params: { language } });
+  }
+
+  getLatestSummaries(): Observable<TopicDailySummary[]> {
+    return this.http.get<TopicDailySummary[]>('/api/summaries/latest');
   }
 
   getRelevantArticles(): Observable<TopicArticles[]> {

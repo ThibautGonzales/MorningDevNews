@@ -24,7 +24,7 @@ export class CollectButton {
   protected collect(): void {
     this.running.set(true);
     this.requestFailed.set(false);
-    this.api.startRun().subscribe({
+    this.api.startRun(this.i18n.language()).subscribe({
       next: (run) => {
         this.lastRun.set(run);
         this.running.set(false);

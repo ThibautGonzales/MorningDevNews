@@ -22,8 +22,11 @@ describe('CollectButton', () => {
     await fixture.whenStable();
     expect(button.disabled).toBe(true);
 
-    const request = TestBed.inject(HttpTestingController).expectOne('/api/runs');
+    const request = TestBed.inject(HttpTestingController).expectOne(
+      (req) => req.url === '/api/runs',
+    );
     expect(request.request.method).toBe('POST');
+    expect(request.request.params.get('language')).toBe('en');
     request.flush({
       id: 1,
       started_at: '',
@@ -32,6 +35,7 @@ describe('CollectButton', () => {
       articles_fetched: 12,
       articles_judged: 10,
       articles_relevant: 3,
+      summaries_created: 2,
       error: 'Real Python: 403 Forbidden',
     });
     await fixture.whenStable();
@@ -41,6 +45,7 @@ describe('CollectButton', () => {
     expect(compiled.querySelector('.relevance')?.textContent).toContain(
       '3 relevant articles out of 10',
     );
+    expect(compiled.querySelector('.summaries')?.textContent).toContain('2 daily summaries');
     expect(compiled.querySelector('pre')?.textContent).toContain('Real Python');
   });
 
@@ -51,7 +56,7 @@ describe('CollectButton', () => {
 
     compiled.querySelector('button')!.click();
     TestBed.inject(HttpTestingController)
-      .expectOne('/api/runs')
+      .expectOne((req) => req.url === '/api/runs')
       .flush(null, { status: 500, statusText: 'Server Error' });
     await fixture.whenStable();
 
