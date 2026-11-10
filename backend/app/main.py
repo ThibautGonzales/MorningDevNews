@@ -5,6 +5,7 @@ Run from the backend/ folder: uvicorn app.main:app --reload
 
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from datetime import UTC
 
 from fastapi import Depends, FastAPI, HTTPException, Query
 from pydantic import BaseModel
@@ -64,6 +65,20 @@ def start_run(
     if language not in LANGUAGES:
         raise HTTPException(400, f"Unknown language, use one of: {', '.join(LANGUAGES)}")
     return run_collection(session, language)
+
+
+@app.get("/api/runs/latest")
+def latest_run(session: Session = Depends(get_session)) -> Run | None:
+    """The last finished collection, or null if none ran yet. Shown under the page header."""
+    run = session.exec(
+        select(Run).where(Run.finished_at.is_not(None)).order_by(Run.started_at.desc())
+    ).first()
+    if run is not None:
+        # SQLite gives back naive datetimes: they were stored in UTC. Mark them so the
+        # browser converts them to the user's clock instead of reading them as local time.
+        run.started_at = run.started_at.replace(tzinfo=UTC)
+        run.finished_at = run.finished_at.replace(tzinfo=UTC)
+    return run
 
 
 @app.get("/api/articles/relevant")

@@ -113,6 +113,11 @@ export class ApiService {
     return this.http.post<Run>('/api/runs', null, { params: { language } });
   }
 
+  /** The last finished collection, or null if none ran yet. */
+  getLatestRun(): Observable<Run | null> {
+    return this.http.get<Run | null>('/api/runs/latest');
+  }
+
   getLatestSummaries(period: SummaryPeriod): Observable<TopicSummary[]> {
     return this.http.get<TopicSummary[]>('/api/summaries/latest', { params: { period } });
   }

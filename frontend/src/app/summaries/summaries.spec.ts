@@ -14,6 +14,7 @@ describe('Summaries', () => {
 
   it('shows the headline, the points with their sources, and topics without summary', async () => {
     const fixture = TestBed.createComponent(Summaries);
+    fixture.detectChanges(); // runs the effect that loads the summaries
     TestBed.inject(HttpTestingController)
       .expectOne('/api/summaries/latest?period=daily')
       .flush([
@@ -42,16 +43,17 @@ describe('Summaries', () => {
     const compiled = fixture.nativeElement as HTMLElement;
 
     expect(compiled.querySelector('.headline')?.textContent).toContain('A new SDK for agents.');
-    expect(compiled.querySelector('li strong')?.textContent).toBe('Agent SDK 2.0');
+    expect(compiled.querySelector('.point h3')?.textContent).toBe('Agent SDK 2.0');
     expect(compiled.querySelector('.tip')?.textContent).toContain('Ask your agent:');
     const link = compiled.querySelector('.sources a')!;
-    expect(link.textContent).toBe('Agent SDK 2.0 is out');
+    expect(link.textContent).toContain('Agent SDK 2.0 is out');
     expect(link.getAttribute('href')).toBe('https://example.com/sdk');
     expect(compiled.querySelector('.empty')?.textContent).toContain('No summary yet');
   });
 
   it('says when the summaries cannot be loaded', async () => {
     const fixture = TestBed.createComponent(Summaries);
+    fixture.detectChanges(); // runs the effect that loads the summaries
     TestBed.inject(HttpTestingController)
       .expectOne('/api/summaries/latest?period=daily')
       .flush(null, { status: 500, statusText: 'Server Error' });
@@ -63,6 +65,7 @@ describe('Summaries', () => {
 
   it('loads the weekly summaries when the Week tab is clicked', async () => {
     const fixture = TestBed.createComponent(Summaries);
+    fixture.detectChanges(); // runs the effect that loads the summaries
     const http = TestBed.inject(HttpTestingController);
     http.expectOne('/api/summaries/latest?period=daily').flush([]);
     await fixture.whenStable();

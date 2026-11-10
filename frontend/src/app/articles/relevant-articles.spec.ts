@@ -14,6 +14,7 @@ describe('RelevantArticles', () => {
 
   it('lists the articles of each topic, and says when a topic has none', async () => {
     const fixture = TestBed.createComponent(RelevantArticles);
+    fixture.detectChanges(); // runs the effect that loads the articles
     TestBed.inject(HttpTestingController)
       .expectOne('/api/articles/relevant')
       .flush([
@@ -36,10 +37,10 @@ describe('RelevantArticles', () => {
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
 
-    const link = compiled.querySelector('a')!;
-    expect(link.textContent).toBe('llm-anthropic 0.31');
+    const link = compiled.querySelector('.list a')!;
+    expect(link.textContent).toContain('llm-anthropic 0.31');
     expect(link.getAttribute('href')).toBe('https://example.com/llm');
-    expect(compiled.querySelector('.meta')?.textContent).toContain('Simon Willison');
+    expect(compiled.querySelector('.list .label')?.textContent).toContain('Simon Willison');
     expect(compiled.querySelector('.reason')?.textContent).toContain('developer tool');
     expect(compiled.querySelector('.empty')?.textContent).toContain('No relevant article yet.');
   });
@@ -47,6 +48,7 @@ describe('RelevantArticles', () => {
   it('formats dates in French when the language is French', async () => {
     localStorage.setItem('language', 'fr');
     const fixture = TestBed.createComponent(RelevantArticles);
+    fixture.detectChanges(); // runs the effect that loads the articles
     TestBed.inject(HttpTestingController)
       .expectOne('/api/articles/relevant')
       .flush([
@@ -66,8 +68,8 @@ describe('RelevantArticles', () => {
         },
       ]);
     await fixture.whenStable();
-    expect((fixture.nativeElement as HTMLElement).querySelector('.meta')?.textContent).toContain(
-      'nov.',
-    );
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('.list .label')?.textContent,
+    ).toContain('nov.');
   });
 });

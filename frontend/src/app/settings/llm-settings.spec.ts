@@ -31,7 +31,7 @@ describe('LlmSettingsForm', () => {
   }
 
   const keyInput = () => compiled.querySelector('input[type=password]') as HTMLInputElement;
-  const buttons = () => compiled.querySelectorAll('button');
+  const buttons = () => compiled.querySelectorAll<HTMLButtonElement>('.actions button');
 
   it('sends only the key when no provider is chosen, so the backend guesses it', async () => {
     await createWith({ provider: null, model: null, api_key_hint: null });
@@ -52,7 +52,7 @@ describe('LlmSettingsForm', () => {
     await fixture.whenStable();
 
     expect(keyInput().value).toBe('');
-    expect(keyInput().placeholder).toBe('Saved key: …1234');
+    expect(compiled.querySelector('.key-hint')?.textContent).toContain('Saved key: …1234');
     expect(compiled.querySelector('.success')?.textContent).toContain('Settings saved.');
   });
 

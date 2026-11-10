@@ -1,23 +1,15 @@
-<button type="button" [disabled]="running()" (click)="collect()">
-  {{ running() ? i18n.t('collect.running') : i18n.t('collect.button') }}
+<button
+  type="button"
+  class="btn btn-primary"
+  [disabled]="collection.running()"
+  (click)="collection.collect()"
+>
+  <svg class="icon" [class.spin]="collection.running()" viewBox="0 0 16 16" aria-hidden="true">
+    @if (collection.running()) {
+      <path d="M8 2a6 6 0 1 0 6 6" />
+    } @else {
+      <path d="M8 2v11M3.5 8.5 8 13l4.5-4.5" />
+    }
+  </svg>
+  {{ collection.running() ? i18n.t('collect.running') : i18n.t('collect.button') }}
 </button>
-
-@if (lastRun(); as run) {
-  @if (run.status === 'failed') {
-    <p class="error">{{ i18n.t('collect.failed') }}</p>
-  } @else {
-    <p class="result">{{ run.articles_fetched }} {{ i18n.t('collect.newArticles') }}</p>
-    <p class="relevance">
-      {{ run.articles_relevant }} {{ i18n.t('collect.relevantOutOf') }} {{ run.articles_judged }}
-      {{ i18n.t('collect.judged') }}
-    </p>
-    <p class="summaries">{{ run.summaries_created }} {{ i18n.t('collect.summaries') }}</p>
-  }
-  @if (run.error) {
-    <p class="error">{{ i18n.t('collect.sourceErrors') }}</p>
-    <pre>{{ run.error }}</pre>
-  }
-}
-@if (requestFailed()) {
-  <p class="error">{{ i18n.t('collect.failed') }}</p>
-}

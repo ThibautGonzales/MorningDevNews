@@ -1,8 +1,31 @@
-.error {
-  color: #b00020;
+.btn {
+  padding: 0.65rem 1.2rem;
+  font-size: 0.9rem;
 }
 
-pre {
-  white-space: pre-wrap;
-  font-size: 0.85rem;
+.icon {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Turns while the collection runs: it can take up to a minute. */
+.spin {
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spin {
+    animation: none;
+  }
 }

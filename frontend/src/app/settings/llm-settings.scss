@@ -1,19 +1,144 @@
+.layout {
+  display: grid;
+  grid-template-columns: 21.5rem minmax(0, 1fr);
+  gap: 4rem;
+  align-items: start;
+}
+
+.intro-title {
+  font-size: 1.9rem;
+  line-height: 1.5;
+}
+
+.intro-text {
+  margin: 1.75rem 0 1.5rem;
+  color: var(--muted);
+}
+
+.circuit,
+.key-note {
+  padding: 1.5rem;
+  border-radius: 3px;
+  margin-bottom: 1.5rem;
+
+  .label {
+    margin: 0 0 1rem;
+  }
+}
+
+.circuit {
+  background: var(--ink);
+
+  .label {
+    color: var(--cyan);
+  }
+
+  ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    line-height: 1.5;
+    color: #fff;
+  }
+
+  span {
+    margin-right: 1rem;
+    color: rgb(255 255 255 / 75%);
+  }
+}
+
+.key-note {
+  background: var(--success-soft);
+
+  .label {
+    color: var(--success);
+    margin-bottom: 0.6rem;
+  }
+
+  p:last-child {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--success);
+  }
+}
+
+.form {
+  padding: 2.5rem 2rem 2rem;
+
+  h2 {
+    font-size: 1.5rem;
+  }
+}
+
+.form-lead {
+  margin: 0.6rem 0 2rem;
+  color: var(--muted);
+}
+
 label {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
-  margin-bottom: 0.75rem;
+  gap: 0.6rem;
+  margin-bottom: 1.75rem;
+}
+
+.field-label {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+select,
+input {
+  width: 100%;
+  height: 3.4rem;
+  padding: 0 1rem;
+  background: var(--card);
+  border: 1px solid #c9c7c0;
+  border-radius: 3px;
+  color: var(--ink);
+
+  &:focus {
+    border-color: var(--ink);
+    outline: none;
+  }
+}
+
+select {
+  appearance: none;
+  padding-right: 2.5rem;
+  background: var(--card)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%236b6b76' stroke-width='1.5'/%3E%3C/svg%3E")
+    no-repeat right 1.1rem center;
+  cursor: pointer;
+}
+
+.mono {
+  font-family: var(--font-mono);
+}
+
+small {
+  font-size: 0.78rem;
+  color: var(--muted);
 }
 
 .actions {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.75rem;
 }
 
-.error {
-  color: #b00020;
+.feedback {
+  margin: 1.5rem 0 0;
+
+  small {
+    font-family: var(--font-mono);
+  }
 }
 
-.success {
-  color: #1b5e20;
+@media (max-width: 1100px) {
+  .layout {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
 }

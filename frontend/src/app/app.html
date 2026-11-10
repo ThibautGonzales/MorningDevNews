@@ -1,25 +1,96 @@
-<main>
-  <header>
-    <h1>MorningDevNews</h1>
-    <label>
-      {{ i18n.t('language.label') }}
-      <!-- [selected] on each option rather than [value] on the select: the select's value is set
-           before @for creates the options, so the browser would fall back to the first one. -->
-      <select (change)="onLanguageChange($event)">
-        @for (language of i18n.languages; track language) {
-          <option [value]="language" [selected]="language === i18n.language()">
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" routerLink="/">
+      <img src="logo.png" alt="" width="48" height="48" />
+      <span>
+        <strong>MorningDevNews</strong>
+        <small>{{ i18n.t('app.tagline') }}</small>
+      </span>
+    </a>
+
+    <nav [attr.aria-label]="i18n.t('nav.label')">
+      @for (link of links; track link.path) {
+        <a
+          [routerLink]="link.path"
+          routerLinkActive="active"
+          ariaCurrentWhenActive="page"
+          [routerLinkActiveOptions]="{ exact: true }"
+        >
+          {{ i18n.t(link.label) }}
+        </a>
+      }
+    </nav>
+
+    <div class="topbar-actions">
+      <app-collect-button />
+      <div class="languages" role="group" [attr.aria-label]="i18n.t('language.label')">
+        @for (language of i18n.languages; track language; let last = $last) {
+          <button
+            type="button"
+            [class.active]="language === i18n.language()"
+            [attr.aria-pressed]="language === i18n.language()"
+            (click)="i18n.setLanguage(language)"
+          >
             {{ language.toUpperCase() }}
-          </option>
+          </button>
+          @if (!last) {
+            <span aria-hidden="true">/</span>
+          }
         }
-      </select>
-    </label>
-  </header>
-  <p>
-    {{ i18n.t('backend.label') }}: <strong>{{ i18n.t(backendStatus()) }}</strong>
-  </p>
-  <!-- After a collection, the summaries and the list reload to show what it brought. -->
-  <app-collect-button (collected)="summaries.reload(); articles.reload()" />
-  <app-summaries #summaries />
-  <app-relevant-articles #articles />
-  <app-llm-settings />
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="statusbar label">
+  <div class="statusbar-inner">
+    <div class="run" aria-live="polite">
+      @if (collection.running()) {
+        <span>{{ i18n.t('collect.running') }}</span>
+      } @else if (collection.requestFailed()) {
+        <span class="error">{{ i18n.t('collect.failed') }}</span>
+      } @else if (collection.lastRun(); as run) {
+        @if (run.status === 'failed') {
+          <span class="error">{{ i18n.t('collect.failed') }}</span>
+        } @else {
+          <span>
+            {{ i18n.t('status.lastRun') }} ·
+            {{ run.finished_at | date: i18n.t('status.dateFormat') : undefined : i18n.language() }}
+          </span>
+          <!-- The counts of a collection are news only right after it ran. -->
+          @if (collection.ranHere()) {
+            <span class="counts">
+              {{ run.articles_fetched }} {{ i18n.t('collect.newArticles') }} ·
+              {{ run.articles_relevant }} {{ i18n.t('collect.relevantOutOf') }}
+              {{ run.articles_judged }} {{ i18n.t('collect.judged') }} · {{ run.summaries_created }}
+              {{ i18n.t('collect.summaries') }}
+            </span>
+          }
+        }
+        @if (collection.ranHere() && run.error) {
+          <details class="source-errors">
+            <summary class="error">{{ i18n.t('collect.sourceErrors') }}</summary>
+            <pre>{{ run.error }}</pre>
+          </details>
+        }
+      } @else {
+        <span>{{ i18n.t('status.noRun') }}</span>
+      }
+    </div>
+
+    <div class="backend" [class.down]="backendStatus() === 'backend.unreachable'">
+      <span class="dot" aria-hidden="true"></span>
+      {{ i18n.t('backend.label') }} · <strong>{{ i18n.t(backendStatus()) }}</strong>
+    </div>
+  </div>
+</div>
+
+<main>
+  <router-outlet />
 </main>
+
+<footer class="footer label">
+  <div class="footer-inner">
+    MorningDevNews <span aria-hidden="true">/</span> {{ i18n.t('footer.tagline') }}
+  </div>
+</footer>
