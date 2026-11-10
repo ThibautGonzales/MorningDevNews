@@ -8,6 +8,7 @@ without parsing free text and every point links to real articles.
 Try it on its own (reads the database, writes nothing):
     python -m app.summarizer          # summary in English
     python -m app.summarizer fr       # summary in French
+After each collection, summarize_new_articles() runs it for every topic and saves the summaries.
 """
 
 from datetime import datetime, timedelta
@@ -16,7 +17,8 @@ from langchain_core.language_models import BaseChatModel
 from pydantic import BaseModel, Field
 from sqlmodel import Session, and_, or_, select
 
-from app.models import Article, Source, Summary, SummaryPeriod, Topic, utc_now
+from app.llm import LlmNotConfiguredError, get_chat_model, get_settings
+from app.models import Article, Run, Source, Summary, SummaryPeriod, Topic, utc_now
 from app.relevance import MAX_AGE_DAYS
 
 # The languages the frontend offers (see frontend/src/app/core/i18n).
@@ -132,11 +134,55 @@ def summarize_topic(
     return summary
 
 
+# ---------- After a collection: summarize every topic and save the summaries ----------
+
+
+def summarize_new_articles(session: Session, run: Run, language: str = "en") -> None:
+    """Writes one daily Summary per enabled topic that has new relevant articles.
+
+    A topic without news gets no LLM call and no Summary, so its next summary still
+    starts where the last one ended. Never raises, like judge_new_articles(): errors go
+    to run.error, and a failed topic is simply summarized on the next run.
+    """
+    try:
+        model = get_chat_model(get_settings(session))
+    except LlmNotConfiguredError as exc:
+        run.error = "\n".join(filter(None, [run.error, f"Summary skipped: {exc}"]))
+        return
+
+    now = utc_now()
+    created = 0
+    errors = []
+    for topic in session.exec(select(Topic).where(Topic.enabled)).all():
+        since = window_start(session, topic, now)
+        articles = articles_to_summarize(session, topic, since)
+        if not articles:
+            continue
+        try:
+            summary = summarize_topic(model, topic, articles, language)
+        except Exception as exc:  # one failing topic (quota, timeout) must not stop the others
+            errors.append(f"Summary ({topic.name}): {exc}")
+            continue
+        session.add(
+            Summary(
+                topic_id=topic.id,
+                period=SummaryPeriod.daily,
+                period_start=since,
+                period_end=now,
+                content=summary.model_dump_json(),
+            )
+        )
+        session.commit()
+        created += 1
+
+    run.summaries_created = created
+    run.error = "\n".join(filter(None, [run.error, *errors])) or None
+
+
 if __name__ == "__main__":
     import sys
 
     from app.database import engine
-    from app.llm import get_chat_model, get_settings
 
     # The Windows console defaults to cp1252, which cannot print every character.
     sys.stdout.reconfigure(encoding="utf-8")

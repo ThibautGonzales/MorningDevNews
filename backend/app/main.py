@@ -6,7 +6,7 @@ Run from the backend/ folder: uvicorn app.main:app --reload
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Query
 from pydantic import BaseModel
 from sqlmodel import Session, select
 
@@ -24,6 +24,8 @@ from app.llm import (
 )
 from app.models import LlmSettings, Run, Topic
 from app.seed import seed_example_topics
+from app.summaries import TopicDailySummary, latest_daily_summaries
+from app.summarizer import LANGUAGES
 
 
 @asynccontextmanager
@@ -50,19 +52,30 @@ def list_topics(session: Session = Depends(get_session)) -> list[Topic]:
 
 
 @app.post("/api/runs")
-def start_run(session: Session = Depends(get_session)) -> Run:
-    """Collects all enabled sources now and returns the finished run.
+def start_run(
+    language: str = Query("en", description="Language of the daily summaries: en or fr"),
+    session: Session = Depends(get_session),
+) -> Run:
+    """Collects all enabled sources now, judges and summarizes, and returns the finished run.
 
     The request waits until every feed is read (a few seconds). A plain "def" endpoint
     runs in a worker thread, so the server keeps answering other requests meanwhile.
     """
-    return run_collection(session)
+    if language not in LANGUAGES:
+        raise HTTPException(400, f"Unknown language, use one of: {', '.join(LANGUAGES)}")
+    return run_collection(session, language)
 
 
 @app.get("/api/articles/relevant")
 def list_relevant_articles(session: Session = Depends(get_session)) -> list[TopicArticles]:
     """The relevant articles of the last 7 days, grouped by topic."""
     return relevant_articles_by_topic(session)
+
+
+@app.get("/api/summaries/latest")
+def list_latest_summaries(session: Session = Depends(get_session)) -> list[TopicDailySummary]:
+    """The latest daily summary of each topic (summary is null if it never had one)."""
+    return latest_daily_summaries(session)
 
 
 # ---------- LLM settings ----------

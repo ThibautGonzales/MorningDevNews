@@ -9,14 +9,16 @@ from sqlmodel import Session, select
 from app.feeds import FeedEntry, discover_feed_url, fetch_feed
 from app.models import Article, Run, RunStatus, Source, utc_now
 from app.relevance import judge_new_articles
+from app.summarizer import summarize_new_articles
 
 
 class FeedNotFoundError(Exception):
     """The source has no feed_url and its site does not advertise any feed."""
 
 
-def run_collection(session: Session) -> Run:
-    """Collects every enabled source, judges the new articles, and records it all as a Run.
+def run_collection(session: Session, language: str = "en") -> Run:
+    """Collects every enabled source, judges the new articles, summarizes them per topic
+    (in `language`), and records it all as a Run.
 
     A failing source is logged in run.error and skipped: the other sources still run.
     """
@@ -45,6 +47,7 @@ def run_collection(session: Session) -> Run:
     session.commit()  # saved before judging, so a rollback in the judge cannot undo it
 
     judge_new_articles(session, run)
+    summarize_new_articles(session, run, language)
     run.finished_at = utc_now()
     session.add(run)
     session.commit()
@@ -100,7 +103,8 @@ if __name__ == "__main__":
         result = run_collection(session)
         print(
             f"Run {result.id}: {result.status.value}, {result.articles_fetched} new articles, "
-            f"{result.articles_relevant} relevant out of {result.articles_judged} judged"
+            f"{result.articles_relevant} relevant out of {result.articles_judged} judged, "
+            f"{result.summaries_created} summaries"
         )
         if result.error:
             print(f"Errors:\n{result.error}")
