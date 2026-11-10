@@ -7,10 +7,11 @@ import { ApiService } from './core/api.service';
 import { I18nService } from './core/i18n/i18n.service';
 import { Language, TranslationKey } from './core/i18n/translations';
 import { LlmSettingsForm } from './settings/llm-settings';
+import { DailySummaries } from './summaries/daily-summaries';
 
 @Component({
   selector: 'app-root',
-  imports: [CollectButton, LlmSettingsForm, RelevantArticles],
+  imports: [CollectButton, DailySummaries, LlmSettingsForm, RelevantArticles],
   styleUrl: './app.scss',
   templateUrl: './app.html',
 })

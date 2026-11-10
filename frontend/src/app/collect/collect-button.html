@@ -11,6 +11,7 @@
       {{ run.articles_relevant }} {{ i18n.t('collect.relevantOutOf') }} {{ run.articles_judged }}
       {{ i18n.t('collect.judged') }}
     </p>
+    <p class="summaries">{{ run.summaries_created }} {{ i18n.t('collect.summaries') }}</p>
   }
   @if (run.error) {
     <p class="error">{{ i18n.t('collect.sourceErrors') }}</p>
