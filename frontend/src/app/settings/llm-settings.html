@@ -4,10 +4,11 @@
   @if (saved(); as settings) {
     <label>
       {{ i18n.t('settings.provider') }}
-      <select [value]="provider()" (change)="onProviderChange($event)">
-        <option value="">{{ i18n.t('settings.providerGuessed') }}</option>
+      <!-- [selected] on the options, not [value] on the select: see the language select in app.html. -->
+      <select (change)="onProviderChange($event)">
+        <option value="" [selected]="!provider()">{{ i18n.t('settings.providerGuessed') }}</option>
         @for (p of settings.providers; track p.id) {
-          <option [value]="p.id">{{ p.label }}</option>
+          <option [value]="p.id" [selected]="p.id === provider()">{{ p.label }}</option>
         }
       </select>
     </label>

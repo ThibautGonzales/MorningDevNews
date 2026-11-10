@@ -65,6 +65,7 @@ describe('LlmSettingsForm', () => {
       .flush({ detail: 'invalid x-api-key' }, { status: 400, statusText: 'Bad Request' });
     await fixture.whenStable();
 
+    expect(compiled.querySelector('select')!.value).toBe('anthropic');
     const error = compiled.querySelector('.error')?.textContent;
     expect(error).toContain('The test failed.');
     expect(error).toContain('invalid x-api-key');
