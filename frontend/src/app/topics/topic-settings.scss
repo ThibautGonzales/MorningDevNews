@@ -1,0 +1,322 @@
+.layout {
+  display: grid;
+  grid-template-columns: 21.5rem minmax(0, 1fr);
+  gap: 4rem;
+  align-items: start;
+}
+
+/* ---------- Topic list ---------- */
+
+aside > .label {
+  margin: 0 0 1rem;
+}
+
+.topic-list {
+  margin: 0 0 1rem;
+  padding: 0;
+  list-style: none;
+
+  button {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+    padding: 1rem 1.1rem;
+    margin-bottom: 0.5rem;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    color: var(--ink);
+    text-align: left;
+    cursor: pointer;
+
+    &:hover {
+      border-color: var(--ink);
+    }
+
+    &.active {
+      background: var(--ink);
+      border-color: var(--ink);
+      color: #fff;
+
+      .label,
+      .num {
+        color: var(--cyan);
+      }
+    }
+  }
+
+  .empty {
+    margin-bottom: 1rem;
+  }
+}
+
+.topic-name {
+  font-family: var(--font-title);
+  font-weight: 600;
+}
+
+.num {
+  margin-right: 0.4rem;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--accent);
+}
+
+.paused {
+  color: var(--muted);
+}
+
+.new-topic {
+  width: 100%;
+  justify-content: center;
+
+  &.active {
+    border-color: var(--ink);
+  }
+}
+
+.how {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  border-radius: 3px;
+  background: var(--ink);
+
+  .label {
+    margin: 0 0 0.75rem;
+    color: var(--cyan);
+  }
+
+  p:last-child {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #fff;
+  }
+}
+
+/* ---------- Forms ---------- */
+
+.editor {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.form {
+  padding: 2.5rem 2rem 2rem;
+
+  h2 {
+    font-size: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  h3 {
+    font-size: 1.1rem;
+    margin-bottom: 1.25rem;
+  }
+}
+
+.form-lead {
+  margin: -1.4rem 0 1.5rem;
+  color: var(--muted);
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 1.75rem;
+}
+
+.field-label {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+input[type='text'],
+input[type='url'],
+textarea {
+  width: 100%;
+  padding: 0 1rem;
+  background: var(--card);
+  border: 1px solid #c9c7c0;
+  border-radius: 3px;
+  color: var(--ink);
+  font: inherit;
+
+  &:focus {
+    border-color: var(--ink);
+    outline: none;
+  }
+}
+
+input[type='text'],
+input[type='url'] {
+  height: 3.4rem;
+}
+
+textarea {
+  padding: 0.9rem 1rem;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+}
+
+small {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+/* A checkbox with its text on the right. */
+.switch {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 0.75rem;
+  cursor: pointer;
+
+  input {
+    width: 1.1rem;
+    height: 1.1rem;
+    margin: 0.2rem 0 0;
+    accent-color: var(--accent);
+  }
+
+  > span {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  &.small {
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0;
+
+    input {
+      margin: 0;
+    }
+  }
+}
+
+.actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.feedback {
+  margin: 1.5rem 0 0;
+
+  small {
+    font-family: var(--font-mono);
+  }
+}
+
+/* ---------- Sources ---------- */
+
+.source-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--line);
+
+  > li {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 1rem 2rem;
+    padding: 1.25rem 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .empty {
+    display: block;
+  }
+
+  p {
+    margin: 0;
+  }
+}
+
+.paused-row .source-info {
+  opacity: 0.55;
+}
+
+.source-info {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.source-name a {
+  font-weight: 600;
+  color: var(--ink);
+  text-decoration: none;
+
+  &:hover {
+    color: var(--accent);
+  }
+}
+
+.feed {
+  overflow-wrap: anywhere;
+  color: var(--muted);
+}
+
+.source-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.link-btn {
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--accent);
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &.danger {
+    color: var(--danger);
+  }
+}
+
+.delete-help {
+  display: block;
+  margin-top: 0.75rem;
+}
+
+/* Name and site side by side, the feed on its own line. */
+.source-fields {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 1.25rem;
+
+  .wide {
+    grid-column: 1 / -1;
+  }
+}
+
+.add-source {
+  margin-top: 2.25rem;
+}
+
+@media (max-width: 1100px) {
+  .layout {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+}

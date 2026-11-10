@@ -1,0 +1,300 @@
+<div class="page">
+  <div class="page-head">
+    <p class="eyebrow">
+      <span>{{ i18n.t('topics.eyebrow') }}</span
+      ><span aria-hidden="true">/</span>
+      <span>{{ i18n.t('topics.eyebrowSub') }}</span>
+    </p>
+    <h1 class="page-title">{{ i18n.t('topics.title') }}</h1>
+    <p class="lead">{{ i18n.t('topics.lead') }}</p>
+  </div>
+
+  @if (loadFailed()) {
+    <p class="error">{{ i18n.t('topics.loadFailed') }}</p>
+  }
+
+  <div class="layout">
+    <aside>
+      <p class="label">{{ i18n.t('topics.listTitle') }}</p>
+      <ul class="topic-list">
+        @for (topic of topics(); track topic.id; let i = $index) {
+          <li>
+            <button
+              type="button"
+              [class.active]="topic.id === selectedId()"
+              [attr.aria-current]="topic.id === selectedId()"
+              (click)="select(topic.id)"
+            >
+              <span class="topic-name">
+                <span class="num">{{ pad(i + 1) }}</span> {{ topic.name }}
+              </span>
+              <span class="label">
+                @if (topic.enabled) {
+                  {{ activeSources(topic) }} {{ i18n.t('topics.sources') }}
+                } @else {
+                  <span class="paused">{{ i18n.t('topics.disabled') }}</span>
+                }
+              </span>
+            </button>
+          </li>
+        } @empty {
+          @if (!loadFailed()) {
+            <li class="empty">{{ i18n.t('topics.none') }}</li>
+          }
+        }
+      </ul>
+      <button
+        type="button"
+        class="btn btn-secondary new-topic"
+        [class.active]="selectedId() === 'new'"
+        (click)="startNew()"
+      >
+        + {{ i18n.t('topics.new') }}
+      </button>
+
+      <div class="how">
+        <p class="label">{{ i18n.t('topics.howTitle') }}</p>
+        <p>{{ i18n.t('topics.howText') }}</p>
+      </div>
+    </aside>
+
+    @if (selectedId() !== null) {
+      <div class="editor">
+        <section class="card form topic-form">
+          <h2>
+            {{ selected() ? i18n.t('topics.formTitle') : i18n.t('topics.formTitleNew') }}
+          </h2>
+
+          <label>
+            <span class="field-label">{{ i18n.t('topics.name') }}</span>
+            <input
+              type="text"
+              [value]="name()"
+              [placeholder]="i18n.t('topics.namePlaceholder')"
+              (input)="name.set(valueOf($event))"
+            />
+          </label>
+
+          <label>
+            <span class="field-label">{{ i18n.t('topics.instructions') }}</span>
+            <textarea
+              rows="5"
+              [value]="description()"
+              [placeholder]="i18n.t('topics.instructionsPlaceholder')"
+              (input)="description.set(valueOf($event))"
+            ></textarea>
+            <small>{{ i18n.t('topics.instructionsHelp') }}</small>
+          </label>
+
+          @if (selected(); as topic) {
+            <label class="switch">
+              <input
+                type="checkbox"
+                [checked]="topic.enabled"
+                (change)="toggleTopic(topic, $any($event.target).checked)"
+              />
+              <span>
+                <span class="field-label">{{ i18n.t('topics.enabled') }}</span>
+                <small>{{ i18n.t('topics.enabledHelp') }}</small>
+              </span>
+            </label>
+          }
+
+          <div class="actions">
+            <button
+              type="button"
+              class="btn btn-primary"
+              [disabled]="topicBusy() || !name().trim() || !description().trim()"
+              (click)="saveTopic()"
+            >
+              {{ selected() ? i18n.t('topics.save') : i18n.t('topics.create') }}
+            </button>
+          </div>
+
+          @if (topicFeedback(); as f) {
+            <p class="feedback" [class]="f.error ? 'error' : 'success'" role="status">
+              {{ i18n.t(f.key) }}
+              @if (f.detail) {
+                <br /><small>{{ f.detail }}</small>
+              }
+            </p>
+          }
+        </section>
+
+        @if (selected(); as topic) {
+          <section class="card form sources">
+            <h2>{{ i18n.t('topics.sourcesTitle') }}</h2>
+            <p class="form-lead">{{ i18n.t('topics.sourcesLead') }}</p>
+
+            <ul class="source-list">
+              @for (source of topic.sources; track source.id) {
+                <li [class.paused-row]="!source.enabled">
+                  @if (editedId() === source.id) {
+                    <div class="source-fields">
+                      <label>
+                        <span class="field-label">{{ i18n.t('topics.sourceName') }}</span>
+                        <input
+                          type="text"
+                          [value]="editedSource().name"
+                          (input)="setEditedSource('name', $event)"
+                        />
+                      </label>
+                      <label>
+                        <span class="field-label">{{ i18n.t('topics.siteUrl') }}</span>
+                        <input
+                          type="url"
+                          class="mono"
+                          [value]="editedSource().site_url"
+                          (input)="setEditedSource('site_url', $event)"
+                        />
+                      </label>
+                      <label class="wide">
+                        <span class="field-label">{{ i18n.t('topics.feedUrl') }}</span>
+                        <input
+                          type="url"
+                          class="mono"
+                          [value]="editedSource().feed_url"
+                          (input)="setEditedSource('feed_url', $event)"
+                        />
+                        <small>{{ i18n.t('topics.feedHelp') }}</small>
+                      </label>
+                    </div>
+                    <div class="actions">
+                      <button
+                        type="button"
+                        class="btn btn-primary"
+                        [disabled]="
+                          sourceBusy() ||
+                          !editedSource().name.trim() ||
+                          !editedSource().site_url.trim()
+                        "
+                        (click)="saveSource(topic, source)"
+                      >
+                        {{ sourceBusy() ? i18n.t('topics.adding') : i18n.t('topics.save') }}
+                      </button>
+                      <button
+                        type="button"
+                        class="btn btn-secondary"
+                        [disabled]="sourceBusy()"
+                        (click)="cancelEdit()"
+                      >
+                        {{ i18n.t('topics.cancel') }}
+                      </button>
+                    </div>
+                  } @else {
+                    <div class="source-info">
+                      <p class="source-name">
+                        <a [href]="source.site_url" target="_blank" rel="noopener"
+                          >{{ source.name }} ↗</a
+                        >
+                      </p>
+                      <p class="mono feed">
+                        {{ source.feed_url ?? i18n.t('topics.feedMissing') }}
+                      </p>
+                      <p class="label">
+                        {{ source.article_count }} {{ i18n.t('topics.articles') }} ·
+                        @if (source.last_fetched_at) {
+                          {{ i18n.t('topics.lastFetched') }}
+                          {{
+                            source.last_fetched_at
+                              | date: 'mediumDate' : undefined : i18n.language()
+                          }}
+                        } @else {
+                          {{ i18n.t('topics.neverFetched') }}
+                        }
+                      </p>
+                    </div>
+                    <div class="source-actions">
+                      <label class="switch small">
+                        <input
+                          type="checkbox"
+                          [checked]="source.enabled"
+                          (change)="toggleSource(topic, source, $any($event.target).checked)"
+                        />
+                        <span class="label">{{ i18n.t('topics.sourceEnabled') }}</span>
+                      </label>
+                      <button type="button" class="link-btn" (click)="editSource(source)">
+                        {{ i18n.t('topics.edit') }}
+                      </button>
+                      @if (source.article_count === 0) {
+                        <button
+                          type="button"
+                          class="link-btn danger"
+                          (click)="deleteSource(topic, source)"
+                        >
+                          {{ i18n.t('topics.delete') }}
+                        </button>
+                      }
+                    </div>
+                  }
+                </li>
+              } @empty {
+                <li class="empty">{{ i18n.t('topics.noSource') }}</li>
+              }
+            </ul>
+            @if (topic.sources.length) {
+              <small class="delete-help">{{ i18n.t('topics.deleteHelp') }}</small>
+            }
+
+            <div class="add-source">
+              <h3>{{ i18n.t('topics.addSource') }}</h3>
+              <div class="source-fields">
+                <label>
+                  <span class="field-label">{{ i18n.t('topics.sourceName') }}</span>
+                  <input
+                    type="text"
+                    [value]="newSource().name"
+                    [placeholder]="i18n.t('topics.sourceNamePlaceholder')"
+                    (input)="setNewSource('name', $event)"
+                  />
+                </label>
+                <label>
+                  <span class="field-label">{{ i18n.t('topics.siteUrl') }}</span>
+                  <input
+                    type="url"
+                    class="mono"
+                    placeholder="https://simonwillison.net"
+                    [value]="newSource().site_url"
+                    (input)="setNewSource('site_url', $event)"
+                  />
+                </label>
+                <label class="wide">
+                  <span class="field-label">{{ i18n.t('topics.feedUrl') }}</span>
+                  <input
+                    type="url"
+                    class="mono"
+                    placeholder="https://simonwillison.net/atom/everything/"
+                    [value]="newSource().feed_url"
+                    (input)="setNewSource('feed_url', $event)"
+                  />
+                  <small>{{ i18n.t('topics.feedHelp') }}</small>
+                </label>
+              </div>
+              <div class="actions">
+                <button
+                  type="button"
+                  class="btn btn-primary"
+                  [disabled]="
+                    sourceBusy() || !newSource().name.trim() || !newSource().site_url.trim()
+                  "
+                  (click)="addSource(topic)"
+                >
+                  {{ sourceBusy() ? i18n.t('topics.adding') : i18n.t('topics.add') }}
+                </button>
+              </div>
+            </div>
+
+            @if (sourceFeedback(); as f) {
+              <p class="feedback" [class]="f.error ? 'error' : 'success'" role="status">
+                {{ i18n.t(f.key) }}
+                @if (f.detail) {
+                  <br /><small>{{ f.detail }}</small>
+                }
+              </p>
+            }
+          </section>
+        }
+      </div>
+    }
+  </div>
+</div>
