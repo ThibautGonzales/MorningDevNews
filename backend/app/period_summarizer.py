@@ -22,7 +22,7 @@ from sqlmodel import Session, select
 
 from app.llm import LlmNotConfiguredError, get_chat_model, get_settings
 from app.models import Run, Summary, SummaryPeriod, Topic
-from app.summarizer import LANGUAGES, MAX_POINTS, TopicSummary
+from app.summarizer import AGENT_TIP_RULES, LANGUAGES, MAX_POINTS, TopicSummary
 
 # How the prompt names each period.
 PERIOD_WORDS = {SummaryPeriod.weekly: "week", SummaryPeriod.monthly: "month"}
@@ -102,6 +102,8 @@ def period_prompt(
         "keeping the latest state of it. Prefer what lasts (a release, a new tool, a feature\n"
         "now available) to what was only a passing mention. Keep only points with a concrete\n"
         "agent_tip: something the developer can ask a coding agent to do now.\n"
+        f"{AGENT_TIP_RULES}"
+        "Rewrite the agent tips of the daily summaries that do not follow these rules.\n"
         "Give each point the article numbers of the daily points it comes from in article_ids.\n"
         f"The headline sums up the {word} in one sentence.\n"
         f"Write in {LANGUAGES[language]}, even if the daily summaries use another language.\n\n"
