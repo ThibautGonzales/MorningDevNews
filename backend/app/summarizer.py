@@ -27,6 +27,17 @@ MAX_ARTICLES_PER_SUMMARY = 50
 # A short list read in two minutes beats an exhaustive one.
 MAX_POINTS = 5
 
+# What makes agent_tip ready to paste. The frontend already labels it "Ask your agent:",
+# so the text itself is the prompt the developer copies into their coding agent.
+AGENT_TIP_RULES = (
+    "agent_tip is the exact prompt the developer will copy and paste into their coding\n"
+    "agent, as is. Write it to the agent, in the imperative (\"Upgrade ...\", \"Add ...\"),\n"
+    "never about the agent (no \"Ask your coding agent to ...\", no \"You could ...\").\n"
+    "The agent has not read the article: name the exact tool, package, version, model\n"
+    "or setting. Only ask for what the agent can do in the developer's project; dates,\n"
+    "prices and other context for the developer belong in whats_new.\n"
+)
+
 
 # ---------- What the LLM must answer (validated by LangChain's structured output) ----------
 
@@ -35,7 +46,10 @@ class SummaryPoint(BaseModel):
     tech: str = Field(description="The tool, library, model or feature, in a few words")
     whats_new: str = Field(description="What changed or appeared, in one or two sentences")
     agent_tip: str = Field(
-        description="How a developer could ask a coding agent to use it, in one sentence"
+        description=(
+            "The prompt to paste into a coding agent, written to the agent in the"
+            " imperative, in one to three sentences"
+        )
     )
     article_ids: list[int] = Field(description="The numbers of the articles this point comes from")
 
@@ -112,6 +126,7 @@ def summary_prompt(topic: Topic, articles: list[Article], language: str) -> str:
         "Only keep a point if you can give a concrete agent_tip: something the developer can\n"
         "ask a coding agent to do now. Drop news, research, benchmarks and stories with no\n"
         "such action, rather than writing a vague or \"not usable yet\" tip.\n"
+        f"{AGENT_TIP_RULES}"
         "Give each point the numbers of its articles in article_ids.\n"
         f"Write in {LANGUAGES[language]}.\n\n"
         f"{blocks}"
