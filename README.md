@@ -1,7 +1,8 @@
 # MorningDevNews
 
-Local, automated tech watch app. Every morning it fetches the articles published since
-the last run on the RSS feeds you picked, and summarizes them with an LLM.
+Local tech watch app for developers. Each time you click **Collect**, it reads the RSS feeds you
+picked, lets an LLM keep only the articles that matter for each of your topics, and summarizes
+them into a short brief, with a ready-to-paste prompt for your coding agent on every point.
 
 ## Features
 
@@ -45,8 +46,9 @@ Screenshots show example content.
 ## Structure
 
 ```
-backend/    Python API (FastAPI): RSS collection, SQLite storage, LLM summaries
+backend/    Python API (FastAPI): RSS collection, SQLite storage, LLM filtering and summaries
 frontend/   Angular interface
+docs/       Screenshots used in this README
 start.bat   Starts everything on Windows
 ```
 
@@ -88,18 +90,6 @@ The API answers on http://localhost:8000 (auto-generated docs at http://localhos
 On the first start the backend creates the SQLite database `backend/morningdevnews.db`
 (ignored by Git) and inserts two example topics. Delete the file to start again from scratch.
 
-## LLM settings
-
-The app works with OpenAI, Anthropic (Claude), Google (Gemini) or Mistral AI, through
-LangChain. You choose the provider, the model and your API key. The provider and the model
-are saved in the SQLite database; the API key is written to `backend/.env` (variable
-`LLM_API_KEY`), which is ignored by Git and never leaves your disk. You can also edit that
-file by hand. Set them on the LLM settings page, or through http://localhost:8000/docs:
-
-- `PUT /api/settings` with `{"api_key": "..."}` (the provider is guessed from the key prefix,
-  except for Mistral: add `"provider": "mistralai"`), and optionally `"model"`;
-- `POST /api/settings/test` checks that the key and the model work.
-
 **Frontend** (from `frontend/`):
 
 ```bash
@@ -107,8 +97,33 @@ npm install
 npm start
 ```
 
-Open http://localhost:4200: the page should show "Backend: ok".
+Open http://localhost:4200: the status bar under the header should show "Local backend · ok".
 `/api/...` calls from the frontend are forwarded to the backend by `frontend/proxy.conf.json`.
+
+## First use
+
+1. Open **LLM settings**, pick a provider, paste your API key, then click **Test**.
+2. Open **Topic settings**: edit the two example topics or create your own, write what the LLM
+   should keep and ignore, and add the sites to follow.
+3. Click **Collect**. The first collection reads the feeds, judges the articles of the last
+   7 days and writes the first brief on **What is new**. Collect again the next morning to get
+   what is new since then.
+
+Weekly and monthly summaries are written by the first collection after a week (Monday to Sunday)
+or a month ends. Summaries are written in the interface language selected when you click Collect.
+
+## LLM settings
+
+The app works with OpenAI, Anthropic (Claude), Google (Gemini) or Mistral AI, through
+LangChain. You choose the provider, the model and your API key on the **LLM settings** page.
+The provider and the model are saved in the SQLite database; the API key is written to
+`backend/.env` (variable `LLM_API_KEY`), which is ignored by Git and is only sent to the
+provider you chose. You can also edit that file by hand, or use the API at
+http://localhost:8000/docs:
+
+- `PUT /api/settings` with `{"api_key": "..."}` (the provider is guessed from the key prefix,
+  except for Mistral: add `"provider": "mistralai"`), and optionally `"model"`;
+- `POST /api/settings/test` checks that the key and the model work.
 
 ## Languages
 
