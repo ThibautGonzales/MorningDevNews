@@ -4,8 +4,6 @@
 2. For the unsure ones only, the title plus the feed's content snippet: relevant or not.
 Most articles are sorted out by their title, so few tokens are spent on content.
 
-Try it on its own (reads the database, writes nothing):
-    python -m app.relevance
 After each collection, judge_new_articles() runs it on the new articles and saves the verdicts.
 """
 
@@ -209,29 +207,3 @@ def judge_new_articles(session: Session, run: Run) -> None:
     run.articles_judged = judged
     run.articles_relevant = relevant
     run.error = "\n".join(filter(None, [run.error, *errors])) or None
-
-
-if __name__ == "__main__":
-    import sys
-
-    from app.database import engine
-
-    # The Windows console defaults to cp1252, which cannot print every character an
-    # article title or an LLM reason may contain.
-    sys.stdout.reconfigure(encoding="utf-8")
-
-    with Session(engine) as session:
-        model = get_chat_model(get_settings(session))
-        for topic in session.exec(select(Topic).where(Topic.enabled)):
-            articles = session.exec(
-                select(Article)
-                .join(Source)
-                .where(Source.topic_id == topic.id)
-                .order_by(Article.published_at.desc())
-                .limit(BATCH_SIZE)
-            ).all()
-            print(f"\n=== {topic.name}: {len(articles)} most recent articles ===")
-            titles = {a.id: a.title for a in articles}
-            for j in judge_articles(model, topic, articles):
-                mark = "[YES]" if j.is_relevant else "[NO] "
-                print(f"{mark} {titles[j.article_id]}\n    {j.reason}")

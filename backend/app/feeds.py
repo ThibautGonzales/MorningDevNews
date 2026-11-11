@@ -1,14 +1,11 @@
 """Reading RSS/Atom feeds: find a site's feed, download it and turn its items into FeedEntry objects.
 
-Nothing here touches the database, so it can be tried on its own:
-    python -m app.feeds https://simonwillison.net/atom/everything/
-    python -m app.feeds --discover https://simonwillison.net
+Nothing here touches the database.
 """
 
 import calendar
 import html
 import re
-import sys
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from html.parser import HTMLParser
@@ -126,11 +123,3 @@ def _snippet(summary: str | None) -> str | None:
     text = html.unescape(re.sub(r"<[^>]+>", " ", summary))
     text = " ".join(text.split())  # collapses spaces and line breaks
     return text[:SNIPPET_MAX_LENGTH] or None
-
-
-if __name__ == "__main__":
-    if sys.argv[1] == "--discover":
-        print(discover_feed_url(sys.argv[2]))
-        sys.exit()
-    for entry in fetch_feed(sys.argv[1]):
-        print(f"{entry.published_at}  {entry.title}\n    {entry.url}")

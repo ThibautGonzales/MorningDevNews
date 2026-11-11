@@ -1,8 +1,4 @@
-"""Collection job: reads the feed of every enabled source of an enabled topic and stores the new articles.
-
-Try it on its own (it creates and seeds the database if needed):
-    python -m app.collector
-"""
+"""Collection job: reads the feed of every enabled source of an enabled topic and stores the new articles."""
 
 from sqlmodel import Session, select
 
@@ -95,20 +91,3 @@ def save_new_articles(session: Session, source: Source, entries: list[FeedEntry]
         )
         added += 1
     return added
-
-
-if __name__ == "__main__":
-    from app.database import create_db_and_tables, engine
-    from app.seed import seed_example_topics
-
-    create_db_and_tables()
-    seed_example_topics()
-    with Session(engine) as session:
-        result = run_collection(session)
-        print(
-            f"Run {result.id}: {result.status.value}, {result.articles_fetched} new articles, "
-            f"{result.articles_relevant} relevant out of {result.articles_judged} judged, "
-            f"{result.summaries_created} summaries"
-        )
-        if result.error:
-            print(f"Errors:\n{result.error}")
