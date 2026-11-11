@@ -11,9 +11,6 @@ Periods are calendar ones, in the PC's local time: a week runs from Monday 00:00
 the next Monday 00:00, a month from the 1st to the 1st of the next month. Only a
 finished period is summarized.
 
-Try it on its own (reads the database, writes nothing):
-    python -m app.period_summarizer week          # last finished week, in English
-    python -m app.period_summarizer month fr      # last finished month, in French
 After each collection, summarize_finished_periods() writes the summary of the last
 finished week and month of every topic, once.
 """
@@ -27,8 +24,7 @@ from app.llm import LlmNotConfiguredError, get_chat_model, get_settings
 from app.models import Run, Summary, SummaryPeriod, Topic
 from app.summarizer import LANGUAGES, MAX_POINTS, TopicSummary
 
-# The words used on the command line, and how the prompt names each period.
-PERIODS = {"week": SummaryPeriod.weekly, "month": SummaryPeriod.monthly}
+# How the prompt names each period.
 PERIOD_WORDS = {SummaryPeriod.weekly: "week", SummaryPeriod.monthly: "month"}
 
 
@@ -155,7 +151,7 @@ def summarize_finished_periods(session: Session, run: Run, language: str = "en")
     now = datetime.now().astimezone()
     created = 0
     errors = []
-    for period in PERIODS.values():
+    for period in PERIOD_WORDS:
         start, end = last_finished_period(period, now)
         for topic in session.exec(select(Topic).where(Topic.enabled)).all():
             if has_summary(session, topic, period, start):
@@ -195,42 +191,3 @@ def has_summary(session: Session, topic: Topic, period: SummaryPeriod, start: da
         ).first()
         is not None
     )
-
-
-if __name__ == "__main__":
-    import sys
-
-    from app.database import engine
-    from app.models import Article
-
-    # The Windows console defaults to cp1252, which cannot print every character.
-    sys.stdout.reconfigure(encoding="utf-8")
-    args = sys.argv[1:]
-    if not args or args[0] not in PERIODS:
-        usage = f"{'|'.join(PERIODS)} [{'|'.join(LANGUAGES)}]"
-        sys.exit(f"Usage: python -m app.period_summarizer {usage}")
-    period = PERIODS[args[0]]
-    language = args[1] if len(args) > 1 else "en"
-    if language not in LANGUAGES:
-        sys.exit(f"Unknown language {language!r}, use one of: {', '.join(LANGUAGES)}")
-
-    start, end = last_finished_period(period, datetime.now().astimezone())
-    with Session(engine) as session:
-        model = get_chat_model(get_settings(session))
-        for topic in session.exec(select(Topic).where(Topic.enabled)):
-            dailies = daily_summaries_in(session, topic, start, end)
-            print(f"\n=== {topic.name}: {len(dailies)} daily summaries", end=" ")
-            print(f"from {start:%Y-%m-%d} to {end - timedelta(days=1):%Y-%m-%d} ===")
-            if not dailies:
-                print("No daily summary in this period.")
-                continue
-            summary = summarize_period(model, topic, period, dailies, language)
-            ids = {i for point in summary.points for i in point.article_ids}
-            titles = {
-                a.id: a.title for a in session.exec(select(Article).where(Article.id.in_(ids)))
-            }
-            print(summary.headline)
-            for point in summary.points:
-                print(f"\n* {point.tech}\n  {point.whats_new}\n  -> {point.agent_tip}")
-                for article_id in point.article_ids:
-                    print(f"     [{article_id}] {titles.get(article_id, '?')}")

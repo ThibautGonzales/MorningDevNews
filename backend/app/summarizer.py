@@ -5,9 +5,6 @@ features you could ask a coding agent to use. The LLM answers in a fixed structu
 (a headline and a few points), like the relevance judge, so the frontend can show it
 without parsing free text and every point links to real articles.
 
-Try it on its own (reads the database, writes nothing):
-    python -m app.summarizer          # summary in English
-    python -m app.summarizer fr       # summary in French
 After each collection, summarize_new_articles() runs it for every topic and saves the summaries.
 """
 
@@ -177,34 +174,3 @@ def summarize_new_articles(session: Session, run: Run, language: str = "en") -> 
 
     run.summaries_created = created
     run.error = "\n".join(filter(None, [run.error, *errors])) or None
-
-
-if __name__ == "__main__":
-    import sys
-
-    from app.database import engine
-
-    # The Windows console defaults to cp1252, which cannot print every character.
-    sys.stdout.reconfigure(encoding="utf-8")
-    language = sys.argv[1] if len(sys.argv) > 1 else "en"
-    if language not in LANGUAGES:
-        sys.exit(f"Unknown language {language!r}, use one of: {', '.join(LANGUAGES)}")
-
-    now = utc_now()
-    with Session(engine) as session:
-        model = get_chat_model(get_settings(session))
-        for topic in session.exec(select(Topic).where(Topic.enabled)):
-            since = window_start(session, topic, now)
-            articles = articles_to_summarize(session, topic, since)
-            print(f"\n=== {topic.name}: {len(articles)} relevant articles", end=" ")
-            print(f"collected since {since:%Y-%m-%d %H:%M} UTC ===")
-            if not articles:
-                print("Nothing new.")
-                continue
-            titles = {a.id: a.title for a in articles}
-            summary = summarize_topic(model, topic, articles, language)
-            print(summary.headline)
-            for point in summary.points:
-                print(f"\n* {point.tech}\n  {point.whats_new}\n  -> {point.agent_tip}")
-                for article_id in point.article_ids:
-                    print(f"     [{article_id}] {titles[article_id]}")
