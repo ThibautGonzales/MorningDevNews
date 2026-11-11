@@ -125,6 +125,23 @@ http://localhost:8000/docs:
   except for Mistral: add `"provider": "mistralai"`), and optionally `"model"`;
 - `POST /api/settings/test` checks that the key and the model work.
 
+## Keeping the LLM bill small
+
+Each collection caps what it sends to the LLM, so a first run or a busy feed cannot run up the bill:
+
+- **Last 7 days only.** Older articles are stored but never judged nor summarized. The first
+  collection often brings back months of history: only its last week goes to the LLM.
+- **200 articles judged at most per collection**, the most recent first. Unjudged ones from the
+  last 7 days are picked up by the next collection.
+- **Titles first.** Articles are judged by batches of 20 titles. Only the ones the LLM is unsure
+  about are sent again with their content snippet.
+- **50 articles at most per daily summary**, and 5 points at most per summary.
+- **Weekly and monthly summaries** read the daily summaries, not the articles again.
+
+These limits are constants at the top of `backend/app/relevance.py` (`MAX_AGE_DAYS`,
+`MAX_ARTICLES_PER_RUN`, `BATCH_SIZE`) and `backend/app/summarizer.py`
+(`MAX_ARTICLES_PER_SUMMARY`, `MAX_POINTS`).
+
 ## Languages
 
 The project is written in English (code, comments, docs). The interface is in English by
