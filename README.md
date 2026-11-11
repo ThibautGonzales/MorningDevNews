@@ -3,6 +3,45 @@
 Local, automated tech watch app. Every morning it fetches the articles published since
 the last run on the RSS feeds you picked, and summarizes them with an LLM.
 
+## Features
+
+**A morning brief, by topic.** For each topic: one headline and a few points. Each point says which
+tool or library changed, what is new, and what to ask your coding agent, with a Copy button and
+links to the source articles.
+
+![What is new page](docs/screenshots/01-what-is-new.png)
+
+**One click to collect.** The Collect button reads every RSS feed, lets the LLM judge which new
+articles are relevant, and writes the summaries. The status bar shows what the collection did.
+
+![Status bar after a collection](docs/screenshots/07-after-collect.png)
+
+**Day, week and month.** Switch between the daily brief and a summary of the whole week or month.
+Weekly and monthly summaries are written automatically once the period is over.
+
+| Week | Month |
+| --- | --- |
+| ![Week view](docs/screenshots/03-week.png) | ![Month view](docs/screenshots/04-month.png) |
+
+**Browse past briefs.** Step back with the arrows, or open the calendar and jump to any date. Days
+that have a brief are in bold.
+
+![Calendar](docs/screenshots/02-calendar.png)
+
+**Your topics and sources.** Create your own topics and tell the LLM in plain words what to keep and
+what to ignore. Add the sites to follow by their RSS or Atom feed, or give the site address and the
+app finds the feed. Pause a topic or a source without losing its history.
+
+<img src="docs/screenshots/05-topics.png" alt="Topic settings page" width="600">
+
+**Bring your own LLM.** OpenAI, Anthropic (Claude), Google (Gemini) or Mistral AI: paste your API
+key, pick a model and test it. The key stays on your computer.
+
+![LLM settings page](docs/screenshots/06-llm.png)
+
+The interface is in English or French, and everything runs locally with a SQLite database.
+Screenshots show example content.
+
 ## Structure
 
 ```
@@ -55,7 +94,7 @@ The app works with OpenAI, Anthropic (Claude), Google (Gemini) or Mistral AI, th
 LangChain. You choose the provider, the model and your API key. The provider and the model
 are saved in the SQLite database; the API key is written to `backend/.env` (variable
 `LLM_API_KEY`), which is ignored by Git and never leaves your disk. You can also edit that
-file by hand. Until the settings page exists, use http://localhost:8000/docs:
+file by hand. Set them on the LLM settings page, or through http://localhost:8000/docs:
 
 - `PUT /api/settings` with `{"api_key": "..."}` (the provider is guessed from the key prefix,
   except for Mistral: add `"provider": "mistralai"`), and optionally `"model"`;
