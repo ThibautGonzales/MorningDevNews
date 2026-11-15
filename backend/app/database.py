@@ -1,13 +1,14 @@
 """SQLite connection: where the database file lives and how to open a session."""
 
 from collections.abc import Iterator
-from pathlib import Path
 
 from sqlalchemy import inspect
 from sqlmodel import Session, SQLModel, create_engine
 
-# The file sits in backend/, next to app/. It is ignored by Git (*.db in .gitignore).
-DATABASE_PATH = Path(__file__).resolve().parent.parent / "morningdevnews.db"
+from app.config import DATA_DIR
+
+# The file sits in the data folder (backend/ by default). It is ignored by Git (*.db in .gitignore).
+DATABASE_PATH = DATA_DIR / "morningdevnews.db"
 
 # check_same_thread=False: FastAPI may use the connection from several threads,
 # which SQLite refuses by default.
