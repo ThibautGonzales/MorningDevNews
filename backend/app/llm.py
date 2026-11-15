@@ -3,13 +3,12 @@
 Same approach as ReadItForMe: one function, get_chat_model(), works for the four providers.
 """
 
-from pathlib import Path
-
 from dotenv import dotenv_values, set_key
 from langchain.chat_models import init_chat_model
 from langchain_core.language_models import BaseChatModel
 from sqlmodel import Session
 
+from app.config import DATA_DIR
 from app.models import LlmSettings
 
 # Supported providers, each with a default model (the user can type another one).
@@ -22,8 +21,9 @@ PROVIDERS = {
 }
 
 
-# The API key is kept out of the database, in backend/.env (ignored by Git, never leaves the disk).
-ENV_PATH = Path(__file__).resolve().parent.parent / ".env"
+# The API key is kept out of the database, in a .env file of the data folder (backend/ by default),
+# ignored by Git and never leaving the disk.
+ENV_PATH = DATA_DIR / ".env"
 API_KEY_VAR = "LLM_API_KEY"
 
 
@@ -44,14 +44,14 @@ def guess_provider(api_key: str) -> str | None:
 
 
 def read_api_key() -> str | None:
-    """Reads the key from backend/.env at each call, so a key saved from the UI is used at once."""
+    """Reads the key from the .env file at each call, so a key saved from the UI is used at once."""
     if not ENV_PATH.exists():
         return None
     return dotenv_values(ENV_PATH).get(API_KEY_VAR) or None
 
 
 def save_api_key(api_key: str) -> None:
-    """Writes the key to backend/.env, creating the file if needed. Other variables are kept."""
+    """Writes the key to the .env file, creating the file if needed. Other variables are kept."""
     ENV_PATH.touch(exist_ok=True)
     set_key(ENV_PATH, API_KEY_VAR, api_key)
 

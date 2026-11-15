@@ -6,3 +6,6 @@ __pycache__/
 # Secrets and local data
 .env
 *.db
+
+# Docker data folder (database and API key)
+data/

@@ -1,0 +1,18 @@
+# Runs MorningDevNews with Docker: "docker compose up -d --build", then open http://localhost:4200.
+# start.bat and stop.bat do this for you on Windows.
+services:
+  backend:
+    build: ./backend
+    volumes:
+      # The SQLite database and the .env file with the API key live in ./data on your disk.
+      - ./data:/data
+    ports:
+      # Optional: only needed to reach the API docs at http://localhost:8000/docs.
+      - "8000:8000"
+
+  frontend:
+    build: ./frontend
+    depends_on:
+      - backend
+    ports:
+      - "4200:80"
