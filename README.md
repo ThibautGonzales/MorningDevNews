@@ -46,31 +46,52 @@ Screenshots show example content.
 ## Structure
 
 ```
-backend/    Python API (FastAPI): RSS collection, SQLite storage, LLM filtering and summaries
-frontend/   Angular interface
-docs/       Screenshots used in this README
-start.bat   Starts everything on Windows
+backend/             Python API (FastAPI): RSS collection, SQLite storage, LLM filtering and summaries
+frontend/            Angular interface, served by nginx in Docker
+docs/                Screenshots used in this README
+docker-compose.yml   Runs the backend and the frontend as two containers
+start.bat, stop.bat  Start and stop everything on Windows
+data/                Created on the first start: your database and API key (ignored by Git)
 ```
 
 ## Requirements
 
-- Python 3.11 or newer
-- Node.js 24.15 or newer (required by Angular 22)
+- [Docker Desktop](https://www.docker.com/products/docker-desktop) (Windows, macOS or Linux)
+
+Python and Node.js are only needed for the manual start without Docker (see below):
+Python 3.11 or newer, and Node.js 24.15 or newer (required by Angular 22).
 
 ## Quick start (Windows)
 
-Double-click `start.bat` (or run it from a terminal). It:
+Double-click `start.bat`. It:
 
-1. creates the Python virtual environment `backend/.venv` and installs the backend dependencies,
-2. installs the frontend dependencies on the first start, and again whenever
-   `frontend/package-lock.json` changed (a new dependency after a `git pull`),
-3. opens two windows, one for the backend and one for the frontend, and opens http://localhost:4200.
+1. starts Docker Desktop if it is not running yet,
+2. runs `docker compose up -d --build`: the first start builds the two images and takes a few
+   minutes, later starts take a few seconds (images are rebuilt only when the code changed),
+3. opens http://localhost:4200 once the app answers.
 
-Close the two windows to stop the app.
+The app keeps running in the background. Double-click `stop.bat` to stop it.
 
-## Manual start (any OS)
+On macOS or Linux, run `docker compose up -d --build` from the project folder, open
+http://localhost:4200, and `docker compose down` to stop.
 
-Two terminals, one per part.
+### How it runs in Docker
+
+- **backend**: the FastAPI app with uvicorn (`backend/Dockerfile`). Its API docs stay reachable
+  on http://localhost:8000/docs.
+- **frontend**: Node builds the Angular app, then nginx serves it on port 4200 and forwards
+  `/api/...` calls to the backend (`frontend/Dockerfile`, `frontend/nginx.conf`).
+- **Your data** lives in the `data/` folder of the project, mounted into the backend container:
+  `data/morningdevnews.db` (SQLite) and `data/.env` (API key). It survives `stop.bat`, a rebuild
+  and a `git pull`. Delete `data/morningdevnews.db` to start again from scratch.
+
+If you used the app before Docker, `start.bat` copies `backend/morningdevnews.db` and
+`backend/.env` to `data/` on its first run (only when `data/` does not have them yet).
+
+## Manual start without Docker (any OS)
+
+Two terminals, one per part. Here the data stays in `backend/` instead of `data/`
+(set the `DATA_DIR` environment variable to use another folder).
 
 **Backend** (from `backend/`):
 
@@ -117,7 +138,7 @@ or a month ends. Summaries are written in the interface language selected when y
 The app works with OpenAI, Anthropic (Claude), Google (Gemini) or Mistral AI, through
 LangChain. You choose the provider, the model and your API key on the **LLM settings** page.
 The provider and the model are saved in the SQLite database; the API key is written to
-`backend/.env` (variable `LLM_API_KEY`), which is ignored by Git and is only sent to the
+`data/.env` (`backend/.env` without Docker, variable `LLM_API_KEY`), which is ignored by Git and is only sent to the
 provider you chose. You can also edit that file by hand, or use the API at
 http://localhost:8000/docs:
 
